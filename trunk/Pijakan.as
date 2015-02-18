@@ -3,6 +3,8 @@ package
 	import flash.display.MovieClip;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.utils.getDefinitionByName;
+	import flash.utils.getQualifiedClassName;
 	
 	/**
 	 * ...
@@ -39,27 +41,18 @@ package
 			anjakKe("kosong");
 		}
 		
-		private function pilihPijakan(e:MouseEvent):void
+		public function pilihPijakan(e:MouseEvent):void
 		{
-			anjakKe("terpilih");
-			
-			for (var i = 0; i < this.getJumlahKoneksi(); i++)
-			{
-				//this.getKoneksi()[i].anjakKe("terpilih");
+			for (var i = 0; i < this.getJumlahKoneksi(); i++) {
+				this.getKoneksi()[i].anjakKe("terpilih");
 			}
 			
-			//trace (getPijakLoncatByArah("NE").getNama());
-			//getPijakLoncatByArah("NE").anjakKe("terpilih");
-			//trace(getKoneksiLoncat().length);
-			
-			for (var x = 0; x < getKoneksiLoncat().length; x++)
+			for (var x = 0; x < getJumlahKoneksiLoncat(); x++)
 			{
-				trace(arahPijakan[x]);
-				if(getPijakLoncatByArah(arahPijakan[x]) != null)
-					getPijakLoncatByArah(arahPijakan[x]).anjakKe("terpilih");
-					//this.getKoneksiLoncat()[x].anjakKe("terpilih");
-					//trace("pijak : " + Pijakan(this).getKoneksi()[i].getNama() + " arah : " + e.target.arahPijakan[i]);
+				//trace(arahPijakan[x] + " " + getKoneksiLoncat()[x].getNama());
+				getKoneksiLoncat()[x].anjakKe("terpilih");
 			}
+			//trace("jumlah total langkah " + getTotalKoneksi());
 		}
 		
 		public function anjakKe(frameName:String = "kosong")
@@ -96,12 +89,13 @@ package
 			else
 			{ // jika belum ada koneksi sama sekali
 				koneksiPijakan.push(p); //masukkan pijakan ke array
-				arahPijakan.push(a);//masukkan arah ke array
+				arahPijakan.push(a); //masukkan arah ke array
 				tambahKoneksiLawan(p, KelasMacan.getArahLawan(a));
 				return;
 			}
 		}
 		
+		//untuk menambah koneksi sebaliknya
 		public function tambahKoneksiLawan(p:Pijakan, a:String):void
 		{
 			if (p.getJumlahKoneksi() > 0) //jika sudah ada koneksi
@@ -123,41 +117,48 @@ package
 			}
 		}
 		
+		//mengambil koneksi Pijakan
 		public function getKoneksi():Array
 		{
 			return koneksiPijakan;
 		}
 		
+		//mengambil jumlah koneksi Pijakan
 		public function getJumlahKoneksi():int
 		{
 			return koneksiPijakan.length;
 		}
 		
-		public function getKoneksiPijakByArah(p:Pijakan, arah:String = "N"):Pijakan
+		// tambah koneksi loncat (3 pijakan)
+		public function tambahKoneksiLoncat():void
 		{
-			//trace("getkoneksipijakbyarah "+arah+" "+p.getNama());
-			for (var a = 0; a < p.arahPijakan.length; a++)
-			{
-				//trace(p.arahPijakan[a]);
-				if (p.arahPijakan[a] == arah)
-					return Pijakan(p.getKoneksi()[a]);
-			}
-			return null;
-		}
-		
-		public function getKoneksiLoncat():Array
-		{
-			koneksiLoncat = null;
-			//trace("jumlah arah pijakan " + this.arahPijakan.length);
 			for (var a = 0; a < this.arahPijakan.length; a++)
 			{
-				//trace(arahPijakan[a]);
-				if (getPijakLoncatByArah(arahPijakan[a]) != null)
-					koneksiLoncat.push(getPijakLoncatByArah(arahPijakan[a]));
+				var l:Pijakan = getPijakLoncatByArah(arahPijakan[a]);
+				if (l != null)
+					koneksiLoncat.push(l);
 			}
+		}
+		
+		// mengambil koneksi loncat
+		public function getKoneksiLoncat():Array
+		{
 			return koneksiLoncat;
 		}
 		
+		//mengambil jumlah koneksi loncat
+		public function getJumlahKoneksiLoncat():int
+		{
+			return koneksiLoncat.length;
+		}
+		
+		//mengambil total koneksi (pijakan + loncat)
+		public function getTotalKoneksi():int
+		{
+			return koneksiPijakan.length + koneksiLoncat.length;
+		}
+		
+		//mengambil 3 pijakan loncat berdasarkan arah
 		protected function getPijakLoncatByArah(arah:String):Pijakan
 		{
 			var pijakloncat = null;
@@ -171,17 +172,40 @@ package
 			return pijakloncat;
 		}
 		
+		// mengambil 1 pijakan loncat berdasarkan arah
+		public function getKoneksiPijakByArah(p:Pijakan, arah:String = "N"):Pijakan
+		{
+			//trace("getkoneksipijakbyarah "+arah+" "+p.getNama());
+			for (var a = 0; a < p.arahPijakan.length; a++)
+			{
+				//trace(p.arahPijakan[a]);
+				if (p.arahPijakan[a] == arah)
+					return Pijakan(p.getKoneksi()[a]);
+			}
+			return null;
+		}
+		
+		//mengeset bidak pada pijakan
 		public function setBidak(b:Bidak):Boolean
 		{
-			if (bidak != null)
-				return false;
-			else
+			if (b == null)
 			{
 				bidak = b;
 				return true;
 			}
+			else
+			{
+				if (bidak != null)
+					return false;
+				else
+				{
+					bidak = b;
+					return true;
+				}
+			}
 		}
 		
+		// mengambil bidak pada pijakan
 		public function getBidak():Bidak
 		{
 			return bidak;

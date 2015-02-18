@@ -22,6 +22,8 @@
 		public function Level()
 		{
 			pijakan = new Array();
+			bidakAktif = new Array();
+			bidakPasif = new Array();
 			// constructor code
 			addEventListener(Event.ENTER_FRAME, setiapFrame);
 			addEventListener(Event.ADDED_TO_STAGE, tambahKeStage);
@@ -32,14 +34,42 @@
 		{
 			//trace(Class(getDefinitionByName(getQualifiedClassName(e.target))));
 			//trace(e.target.x + " " + e.target.y);
-			if (e.target as Level) {
-				for (var b = 0; b < pijakan.length; b++) {
-					pijakan[b].anjakKe("kosong");
+			if (e.target as Level)
+			{
+				resetKlikPijakBidak();
+			}
+			else if (e.target.parent.parent as Bidak)
+			{
+				resetKlikPijakBidak();
+				Bidak(e.target.parent.parent).klikSaya();
+			}
+			else if ((e.target as Pijakan) || (e.target.parent as Pijakan))
+			{
+				resetKlikPijakBidak();
+				try
+				{
+					Pijakan(e.target).pilihPijakan(null);
+				}
+				catch (er:Error)
+				{
+					Pijakan(e.target.parent).pilihPijakan(null);
 				}
 			}
-		
 		}
 		
+		private function resetKlikPijakBidak():void
+		{
+			for (var p = 0; p < pijakan.length; p++)
+			{
+				pijakan[p].anjakKe("kosong");
+			}
+			for (var b1 = 0; b1 < bidakAktif.length; b1++)
+			{
+				bidakAktif[b1].tidakKlikSaya();
+			}
+		}
+		
+		//saat tambah ke stage
 		protected function tambahKeStage(e:Event):void
 		{
 			buatTempatPijak();
@@ -63,6 +93,7 @@
 				var bid:Bidak = new Bidak("macan", KelasMacan.lpad(b, 2));
 				bid.x = 65 + (b * 45);
 				bid.y = 555;
+				bidakAktif.push(bid);
 				addChild(bid);
 			}
 			
@@ -72,6 +103,7 @@
 				var bidA:Bidak = new Bidak("anak", KelasMacan.lpad(a, 2));
 				bidA.x = 175 + (a * 45);
 				bidA.y = 555;
+				bidakAktif.push(bidA);
 				addChild(bidA);
 			}
 		}
@@ -80,7 +112,7 @@
 		{
 			var pX = 0;
 			var pY = 0;
-			// cari tiap pijakan
+			// cari tiap pijakan dan hubungkan
 			for (var b = 0; b < pijakan.length; b++)
 			{
 				pX = Pijakan(pijakan[b]).x;
@@ -100,8 +132,9 @@
 						pijakanAwal.tambahKoneksi(pijakanAkhir, "N");
 					
 					//buat koneksi pijakan untuk horisontal
-					if(pY == pijakanAkhir.y && ((pX == (pijakanAkhir.x - 90) || pijakanAkhir.x == (pX - 90)) || (pX == (pijakanAkhir.x - 80) || pijakanAkhir.x == (pX - 80)))){
-						if(pijakanAwal.x < pijakanAkhir.x)
+					if (pY == pijakanAkhir.y && ((pX == (pijakanAkhir.x - 90) || pijakanAkhir.x == (pX - 90)) || (pX == (pijakanAkhir.x - 80) || pijakanAkhir.x == (pX - 80))))
+					{
+						if (pijakanAwal.x < pijakanAkhir.x)
 							pijakanAwal.tambahKoneksi(pijakanAkhir, "E");
 						else
 							pijakanAwal.tambahKoneksi(pijakanAkhir, "W");
@@ -129,6 +162,12 @@
 					}
 				}
 			}
+			
+			//buat koneksi loncat
+			for (var pj = 0; pj < pijakan.length; pj++)
+			{
+				pijakan[pj].tambahKoneksiLoncat();
+			}
 		
 		}
 		
@@ -140,7 +179,7 @@
 				{
 					for (var j = 0; j < Pijakan(pijakan[i]).getJumlahKoneksi(); j++)
 					{
-						var pKon:Pijakan = Pijakan(pijakan[i].getKoneksi()[j]);						
+						var pKon:Pijakan = Pijakan(pijakan[i].getKoneksi()[j]);
 						graphics.lineStyle(5, 0xAAAAAA);
 						graphics.moveTo(pijakan[i].x, pijakan[i].y);
 						graphics.lineTo(pKon.x, pKon.y);
@@ -171,7 +210,6 @@
 			var letakY:Number = 0;
 			for (var i:int = 0; i < 25; i++)
 			{
-				
 				letakY = 480 - ((i % 5) * 90);
 				if (i < 5)
 					letakX = 200 + (0 * 90);
