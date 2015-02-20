@@ -34,13 +34,13 @@
 			tipeBidak = tipe;
 			
 			nama = tipe + "_" + namaGambar;
-			
+			this.buttonMode = true;
 			addEventListener(Event.ADDED_TO_STAGE, inisialisasi); //saat ditambahkan ke stage
 			//addEventListener(MouseEvent.MOUSE_OVER, mouseOver); // saat diatas bidak
 			//addEventListener(MouseEvent.MOUSE_OUT, mouseOut); // saat keluar bidak
 			
-			addEventListener(MouseEvent.MOUSE_DOWN, mouseDown); //ini jika drag drop
-			addEventListener(MouseEvent.MOUSE_UP, mouseUp); //ini jika drag drop
+			//addEventListener(MouseEvent.MOUSE_DOWN, mouseDown); //ini jika drag drop
+			//addEventListener(MouseEvent.MOUSE_UP, mouseUp); //ini jika drag drop
 		}
 		
 		public function klikSaya()
@@ -59,6 +59,8 @@
 				this.addChildAt(circle, 0);
 				terklik = true;
 			}
+			if (this.getPijakan() != null)
+				this.getPijakan().pilihPijakan(null);
 		}
 		
 		public function tidakKlikSaya()
@@ -73,6 +75,7 @@
 		private function mouseDown(e:MouseEvent):void //ini jika drag drop
 		{
 			this.startDrag();
+			klikSaya();
 		}
 		
 		private function mouseUp(e:MouseEvent):void //ini jika drag drop
@@ -107,15 +110,6 @@
 			loadGambar.y = -21;
 			
 			gambarBidak.addChildAt(loadGambar, 0);
-		
-		/*var masker:Shape = new Shape();
-		   masker.graphics.beginFill(0x0);
-		   masker.graphics.drawCircle(0, 0, 21);
-		   masker.graphics.endFill();
-		   this.addChild(masker);
-		 //loadGambar.mask = masker;*/
-		
-			//gambarBidak.addChild(loadGambar);
 		}
 		
 		public function getNama():String

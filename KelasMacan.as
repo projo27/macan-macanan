@@ -61,6 +61,10 @@ package
 			}
 			return arahBerlawanan;
 		}
+		
+		public static function apaKenaPijakan(b:Bidak, p:Pijakan):Boolean {
+			return b.hitTestObject(p);
+		}
 	}
 
 }

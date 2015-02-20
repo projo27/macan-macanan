@@ -1,6 +1,9 @@
 ﻿package
 {
 	
+	import fl.transitions.easing.Regular;
+	import fl.transitions.Tween;
+	import fl.transitions.TweenEvent;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.display.Loader;
@@ -18,42 +21,57 @@
 		public var bidakPasif:Array;
 		
 		public var historiLangkah:Array;
+		public var bidakTerklik:Bidak;
+		public var pijakanTerklik:Pijakan;
+		
+		var aturan:AturanMain;
 		
 		public function Level()
 		{
-			pijakan = new Array();
-			bidakAktif = new Array();
-			bidakPasif = new Array();
+			aturan = new AturanMain();
+			pijakan = KecerdasanBuatan.pijakan;
+			bidakAktif = KecerdasanBuatan.bidakAktif;
+			bidakPasif = KecerdasanBuatan.bidakPasif;
+			bidakTerklik = null;
+			pijakanTerklik = new Pijakan;
 			// constructor code
 			addEventListener(Event.ENTER_FRAME, setiapFrame);
 			addEventListener(Event.ADDED_TO_STAGE, tambahKeStage);
 			addEventListener(MouseEvent.CLICK, klikObjek);
+			addEventListener(MouseEvent.MOUSE_UP, mosUp);
 		}
 		
 		private function klikObjek(e:MouseEvent):void
 		{
-			//trace(Class(getDefinitionByName(getQualifiedClassName(e.target))));
-			//trace(e.target.x + " " + e.target.y);
-			if (e.target as Level)
+			resetKlikPijakBidak();
+			if (e.target.parent.parent as Bidak)
 			{
-				resetKlikPijakBidak();
-			}
-			else if (e.target.parent.parent as Bidak)
-			{
-				resetKlikPijakBidak();
 				Bidak(e.target.parent.parent).klikSaya();
+				bidakTerklik = Bidak(e.target.parent.parent);
 			}
 			else if ((e.target as Pijakan) || (e.target.parent as Pijakan))
 			{
-				resetKlikPijakBidak();
 				try
 				{
 					Pijakan(e.target).pilihPijakan(null);
+					pijakanTerklik = Pijakan(e.target);
 				}
 				catch (er:Error)
 				{
 					Pijakan(e.target.parent).pilihPijakan(null);
+					pijakanTerklik = Pijakan(e.target.parent);
 				}
+				if (bidakTerklik != null)
+				{
+					if (aturan.setLangkah(bidakTerklik, pijakanTerklik))
+					{
+						bidakTerklik.klikSaya();
+						var twX:Tween = new Tween(bidakTerklik, "x", Regular.easeInOut, bidakTerklik.x, pijakanTerklik.x, 10);
+						var twY:Tween = new Tween(bidakTerklik, "y", Regular.easeInOut, bidakTerklik.y, pijakanTerklik.y, 10);
+					}
+					bidakTerklik = null;
+				}
+				
 			}
 		}
 		
@@ -281,6 +299,31 @@
 		private function setiapFrame(e:Event):void
 		{
 		
+		}
+		
+		private function mosUp(e:MouseEvent):void
+		{
+			if (e.target.parent.parent as Bidak)
+			{
+				var b:Bidak = e.target.parent.parent as Bidak;
+				var posAwalX = b.x;
+				var posAwalY = b.y;
+				var pij:Array = new Array();
+				for (var p = 0; p < pijakan.length; p++)
+				{
+					if (Bidak(e.target.parent.parent).hitTestObject(pijakan[p]))
+					{
+						pij.push(pijakan[p]);
+					}
+				}
+				
+				if (pij.length > 1)
+				{
+					
+					e.target.parent.parent.x = posAwalX;
+					e.target.parent.parent.y = posAwalY;
+				}
+			}
 		}
 	}
 
