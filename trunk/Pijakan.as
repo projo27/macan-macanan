@@ -27,6 +27,8 @@ package
 			koneksiPijakan = new Array(); //set koneksi
 			arahPijakan = new Array(); //set arah
 			koneksiLoncat = new Array();
+			this.buttonMode = true;
+			tPijakan.mouseEnabled = false;
 			addEventListener(Event.ADDED_TO_STAGE, inisialisasi);
 		}
 		
@@ -43,14 +45,17 @@ package
 		
 		public function pilihPijakan(e:MouseEvent):void
 		{
-			for (var i = 0; i < this.getJumlahKoneksi(); i++) {
+			for (var i = 0; i < this.getJumlahKoneksi(); i++)
+			{
 				this.getKoneksi()[i].anjakKe("terpilih");
 			}
-			
-			for (var x = 0; x < getJumlahKoneksiLoncat(); x++)
+			if (bidak != null && bidak.tipeBidak == "macan")
 			{
-				//trace(arahPijakan[x] + " " + getKoneksiLoncat()[x].getNama());
-				getKoneksiLoncat()[x].anjakKe("terpilih");
+				for (var x = 0; x < getJumlahKoneksiLoncat(); x++)
+				{
+					//trace(arahPijakan[x] + " " + getKoneksiLoncat()[x].getNama());
+					getKoneksiLoncat()[x].anjakKe("terpilih");
+				}
 			}
 			//trace("jumlah total langkah " + getTotalKoneksi());
 		}
