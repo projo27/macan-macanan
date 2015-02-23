@@ -27,8 +27,9 @@ package
 			koneksiPijakan = new Array(); //set koneksi
 			arahPijakan = new Array(); //set arah
 			koneksiLoncat = new Array();
+			arahLoncat = new Array();
 			this.buttonMode = true;
-			tPijakan.mouseEnabled = false;
+			tPijakan.mouseEnabled = false; //untuk mengeset mouse bentuk tangan (hand)
 			addEventListener(Event.ADDED_TO_STAGE, inisialisasi);
 		}
 		
@@ -44,20 +45,20 @@ package
 		}
 		
 		public function pilihPijakan(e:MouseEvent):void
-		{
+		{			
 			for (var i = 0; i < this.getJumlahKoneksi(); i++)
 			{
-				this.getKoneksi()[i].anjakKe("terpilih");
+				if (this.getKoneksi()[i].getBidak() == null)
+					this.getKoneksi()[i].anjakKe("terpilih");
 			}
 			if (bidak != null && bidak.tipeBidak == "macan")
 			{
 				for (var x = 0; x < getJumlahKoneksiLoncat(); x++)
 				{
-					//trace(arahPijakan[x] + " " + getKoneksiLoncat()[x].getNama());
-					getKoneksiLoncat()[x].anjakKe("terpilih");
+					if (AturanMain.cekLoncatanMacan(bidak, getKoneksiLoncat()[x]) && this.getKoneksiLoncat()[x].getBidak() == null)
+						getKoneksiLoncat()[x].anjakKe("terpilih");
 				}
 			}
-			//trace("jumlah total langkah " + getTotalKoneksi());
 		}
 		
 		public function anjakKe(frameName:String = "kosong")
@@ -140,8 +141,10 @@ package
 			for (var a = 0; a < this.arahPijakan.length; a++)
 			{
 				var l:Pijakan = getPijakLoncatByArah(arahPijakan[a]);
-				if (l != null)
+				if (l != null){
 					koneksiLoncat.push(l);
+					arahLoncat.push(arahPijakan[a]);
+				}
 			}
 		}
 		
@@ -149,6 +152,11 @@ package
 		public function getKoneksiLoncat():Array
 		{
 			return koneksiLoncat;
+		}
+		// mengambil arah koneksi loncat
+		public function getArahKoneksiLoncat():Array
+		{
+			return arahLoncat;
 		}
 		
 		//mengambil jumlah koneksi loncat
@@ -161,6 +169,11 @@ package
 		public function getTotalKoneksi():int
 		{
 			return koneksiPijakan.length + koneksiLoncat.length;
+		}
+		
+		public function getSemuaKoneksi():Array
+		{
+			return koneksiPijakan.concat(koneksiLoncat);
 		}
 		
 		//mengambil 3 pijakan loncat berdasarkan arah
@@ -193,21 +206,8 @@ package
 		//mengeset bidak pada pijakan
 		public function setBidak(b:Bidak):Boolean
 		{
-			if (b == null)
-			{
-				bidak = b;
-				return true;
-			}
-			else
-			{
-				if (bidak != null)
-					return false;
-				else
-				{
-					bidak = b;
-					return true;
-				}
-			}
+			bidak = b;
+			return true;
 		}
 		
 		// mengambil bidak pada pijakan
