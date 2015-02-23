@@ -23,18 +23,27 @@ package
 		
 		public static function setHistoriLangkah(b:Bidak, p:Pijakan):void {
 			historiLangkah.push(new Array((historiLangkah.length + 1), new Date().getTime(), p, b));
+			trace(historiLangkah[historiLangkah.length-1]);
 		}
 		
 		public static function cekBidakBelumPijak():Array {			
-			var bidakBelumPijak = new Array();
+			var bidakBelumPijak:Array = new Array();
 			for (var b = 0; b < bidakAktif.length; b++) {
 				if (Bidak(bidakAktif[b]).getPijakan() == null){
 					bidakBelumPijak.push(bidakAktif[b]);
 				}
-				else
-				trace(bidakAktif[b].getNama()+" "+bidakAktif[b].getPijakan().getNama());
 			}
 			return bidakBelumPijak;
+		}
+		
+		public static function cekBidakMacanBelumPijak():Array {
+			var bidakMacanBelumPijak:Array = new Array();
+			for (var m = 0; m < cekBidakBelumPijak().length; m ++) {
+				if (Bidak(bidakAktif[m]).tipeBidak == "macan"  && Bidak(bidakAktif[m]).getPijakan() == null) {
+					bidakMacanBelumPijak.push(bidakAktif[m]);
+				}
+			}
+			return bidakMacanBelumPijak;
 		}
 		
 	}

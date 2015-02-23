@@ -38,7 +38,8 @@
 			addEventListener(Event.ENTER_FRAME, setiapFrame);
 			addEventListener(Event.ADDED_TO_STAGE, tambahKeStage);
 			addEventListener(MouseEvent.CLICK, klikObjek);
-			addEventListener(MouseEvent.MOUSE_UP, mosUp);
+			btnHistori.addEventListener(MouseEvent.CLICK, klikHistori);
+			//addEventListener(MouseEvent.MOUSE_UP, mosUp);
 		}
 		
 		private function klikObjek(e:MouseEvent):void
@@ -73,8 +74,11 @@
 				}
 				
 			}
+			else {
+				//trace(e.target);
+			}
 		}
-		
+		// reset klik Pijakan dan Bidak
 		private function resetKlikPijakBidak():void
 		{
 			for (var p = 0; p < pijakan.length; p++)
@@ -94,7 +98,7 @@
 			buatHubunganPijak();
 			buatJalur();
 			buatBidak();
-			resetBeberapaMovie();
+			resetBeberapaMovie();			
 		}
 		
 		protected function resetBeberapaMovie():void
@@ -105,16 +109,6 @@
 		
 		protected function buatBidak():void
 		{
-			//ini untuk membuat bidak macan
-			for (var b = 1; b <= 2; b++)
-			{
-				var bid:Bidak = new Bidak("macan", KelasMacan.lpad(b, 2));
-				bid.x = 65 + (b * 45);
-				bid.y = 555;
-				bidakAktif.push(bid);
-				addChild(bid);
-			}
-			
 			//ini untuk membuat bidak manusia
 			for (var a = 1; a <= 12; a++)
 			{
@@ -123,6 +117,16 @@
 				bidA.y = 555;
 				bidakAktif.push(bidA);
 				addChild(bidA);
+			}
+			
+			//ini untuk membuat bidak macan
+			for (var b = 1; b <= 2; b++)
+			{
+				var bid:Bidak = new Bidak("macan", KelasMacan.lpad(b, 2));
+				bid.x = 65 + (b * 45);
+				bid.y = 555;
+				bidakAktif.push(bid);
+				addChild(bid);
 			}
 		}
 		
@@ -325,6 +329,15 @@
 				}
 			}
 		}
+		private function klikHistori(e:MouseEvent):void 
+		{
+			if(kotakHistoris.visible == false)
+				kotakHistoris.visible = true;
+			else
+				kotakHistoris.visible = false;
+			//trace("tombol terklik");
+		}
+		
 	}
 
 }

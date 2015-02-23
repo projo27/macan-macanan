@@ -20,7 +20,8 @@
 		var terklik:Boolean;
 		var tipeBidak:String;
 		
-		var pijakan:Pijakan;
+		private var pijakan:Pijakan;
+		private var pijakanSebelum:Pijakan;
 		var loadGambar:Loader = new Loader();
 		
 		private var nama:String;
@@ -28,7 +29,7 @@
 		public function Bidak(tipe:String = "macan", namaGambar:String = "01")
 		{
 			// constructor code
-			pijakan = null;
+			pijakan = null; pijakanSebelum = null;
 			terklik = false;
 			gambar = KelasMacan.getFolderBidak() + tipe + "_" + namaGambar + ".png";
 			tipeBidak = tipe;
@@ -119,7 +120,8 @@
 		
 		public function setPijakan(pijak:Pijakan)
 		{
-			pijakan = pijak;
+			pijakanSebelum = pijakan;
+			pijakan = pijak;			
 		}
 		
 		public function getPijakan():Pijakan
