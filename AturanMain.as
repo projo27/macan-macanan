@@ -1,5 +1,6 @@
 package
 {
+	import flash.events.Event;
 	
 	/**
 	 * ...
@@ -41,7 +42,7 @@ package
 				}
 			}
 			
-			if (pilihKoneksiPijak(b, p)) // || cekLoncatanMacan(b, p)
+			if (pilihKoneksiPijak(b, p))
 			{
 				// selain itu, true dan pilihBidakPijak
 				pilihBidakPijak(b, p);
@@ -61,75 +62,9 @@ package
 		}
 		
 		//function untuk menentukan, apakah pijakan yang dipilih terhubung dengan pijakan awal
-		protected function pilihKoneksiPijak(b:Bidak, p:Pijakan):Boolean
-		{
-			if (b.getPijakan() != null) // jika bidak sudah memiliki pijakan sebelumnya
-			{
-				//trace(b.getPijakan().getNama());
-				var jalurPijak:Array = b.getPijakan().getKoneksi();
-				var jalurLoncat:Array = b.getPijakan().getKoneksiLoncat();
-				
-				for (var j = 0; j < b.getPijakan().getJumlahKoneksi(); j++) // jika pijakan yang dipilih merupakan salah satu pilihan pijakan
-				{
-					//trace(jalurPijak[j].getNama() + " " + p.getNama());
-					if (p == jalurPijak[j])
-						return true; // jika termasuk return true
-				}
-				
-				for (var l = 0; l < b.getPijakan().getJumlahKoneksiLoncat(); l++)
-				{ // jika punya loncatan
-					if (p == jalurLoncat[l])
-					{ // cek loncatan
-						return cekLoncatanMacan(b, p);
-					}
-				}
-				
-				return false; // jika tidak return false
-			}
-			else // jika bidak belum memiliki pijakan
-			{
-				return true;
-			}
+		public function pilihKoneksiPijak(b:Bidak, p:Pijakan):Boolean
+		{			
+			return KelasMacan.pilihKoneksiPijak(b, p);
 		}
-		
-		// untuk mengecek, apakah ada 2 bidak sejajar yang dapat diloncati
-		public static function cekLoncatanMacan(b:Bidak, p:Pijakan):Boolean
-		{
-			if (b.getPijakan() != null && b.tipeBidak == "macan") // jika loncatan awal kosong, dan tipebidak macan
-			{
-				var arahLoncatan = "";
-				var pijakan1:Pijakan = null;
-				var pijakan2:Pijakan = null;
-				var ketemu:Boolean = false;
-				for (var l = 0; l < b.getPijakan().getJumlahKoneksiLoncat(); l++)
-				{
-					if (b.getPijakan().getKoneksiLoncat()[l] == p)
-					{
-						arahLoncatan = b.getPijakan().getArahKoneksiLoncat()[l];
-					}
-				}
-				
-				pijakan1 = b.getPijakan().getKoneksiPijakByArah(b.getPijakan(), arahLoncatan);
-				if (pijakan1.getBidak() == null)
-					return false;
-				else if (pijakan1.getBidak().tipeBidak == "macan")
-					return false;
-				else
-				{
-					pijakan2 = pijakan1.getKoneksiPijakByArah(pijakan1, arahLoncatan);
-					if (pijakan2.getBidak() == null)
-						return false;
-					else if (pijakan2.getBidak().tipeBidak == "macan")
-						return false;
-					else
-					{
-						//trace(pijakan1.getNama() + " " + pijakan1.getBidak().getNama() + " " + pijakan2.getNama() + " " + pijakan2.getBidak().getNama());
-						return true;
-					}
-				}
-			}
-			return true;
-		}
-	
 	}
 }

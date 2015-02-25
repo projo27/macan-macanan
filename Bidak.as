@@ -19,6 +19,7 @@
 		var circle:Sprite = new Sprite();
 		var terklik:Boolean;
 		var tipeBidak:String;
+		var status:Boolean;
 		
 		private var pijakan:Pijakan;
 		private var pijakanSebelum:Pijakan;
@@ -29,19 +30,52 @@
 		public function Bidak(tipe:String = "macan", namaGambar:String = "01")
 		{
 			// constructor code
-			pijakan = null; pijakanSebelum = null;
+			pijakan = null;
+			pijakanSebelum = null;
 			terklik = false;
 			gambar = KelasMacan.getFolderBidak() + tipe + "_" + namaGambar + ".png";
 			tipeBidak = tipe;
+			status = true;
 			
 			nama = tipe + "_" + namaGambar;
 			this.buttonMode = true;
 			addEventListener(Event.ADDED_TO_STAGE, inisialisasi); //saat ditambahkan ke stage
 			//addEventListener(MouseEvent.MOUSE_OVER, mouseOver); // saat diatas bidak
 			//addEventListener(MouseEvent.MOUSE_OUT, mouseOut); // saat keluar bidak
-			
+		
 			//addEventListener(MouseEvent.MOUSE_DOWN, mouseDown); //ini jika drag drop
 			//addEventListener(MouseEvent.MOUSE_UP, mouseUp); //ini jika drag drop
+		}
+		
+		private function inisialisasi(e:Event):void
+		{
+			//set default untuk pengambilan gambar			
+			loadGambar.load(new URLRequest(gambar));
+			loadGambar.x = -21;
+			loadGambar.y = -21;
+			
+			gambarBidak.addChildAt(loadGambar, 0);
+			gDisable.visible = false;
+		}
+		
+		public function getNama():String
+		{
+			return nama;
+		}
+		
+		public function setPijakan(pijak:Pijakan)
+		{
+			pijakanSebelum = pijakan;
+			pijakan = pijak;
+		}
+		
+		public function getPijakan():Pijakan
+		{
+			return pijakan;
+		}
+		public function getPijakanSebelum():Pijakan
+		{
+			return pijakanSebelum;
 		}
 		
 		public function klikSaya()
@@ -73,60 +107,17 @@
 			}
 		}
 		
-		private function mouseDown(e:MouseEvent):void //ini jika drag drop
+		public function setDisable()
 		{
-			this.startDrag();
-			klikSaya();
-		}
-		
-		private function mouseUp(e:MouseEvent):void //ini jika drag drop
-		{
-			this.stopDrag();
-		}
-		
-		private function mouseOut(e:MouseEvent):void
-		{
-			removeChildAt(0);
-		}
-		
-		private function mouseOver(e:MouseEvent):void
-		{
-			var warna:uint;
-			if (tipeBidak == "macan")
-				warna = uint("0x" + "E56F00");
-			else
-				warna = uint("0x" + "008EE5");
-			
-			circle.graphics.beginFill(warna);
-			circle.graphics.drawCircle(0, 0, 23);
+			circle.graphics.beginFill(0xDDDDDD, 1);
+			circle.graphics.drawCircle(0, 0, 22);
 			circle.graphics.endFill();
-			addChildAt(circle, 0);
-		}
-		
-		private function inisialisasi(e:Event):void
-		{
-			//set default untuk pengambilan gambar			
-			loadGambar.load(new URLRequest(gambar));
-			loadGambar.x = -21;
-			loadGambar.y = -21;
+			addChildAt(circle,0);
 			
-			gambarBidak.addChildAt(loadGambar, 0);
-		}
-		
-		public function getNama():String
-		{
-			return nama;
-		}
-		
-		public function setPijakan(pijak:Pijakan)
-		{
-			pijakanSebelum = pijakan;
-			pijakan = pijak;			
-		}
-		
-		public function getPijakan():Pijakan
-		{
-			return pijakan;
+			gDisable.visible = true;
+			status = false;
+			
+			setPijakan(null);
 		}
 	
 	}
