@@ -24,7 +24,11 @@
 		public var bidakTerklik:Bidak;
 		public var pijakanTerklik:Pijakan;
 		
+		private var tween:Array;
+		
 		var aturan:AturanMain;
+		
+		var arrBidakTerloncati:Array = new Array();
 		
 		public function Level()
 		{
@@ -47,8 +51,12 @@
 			resetKlikPijakBidak();
 			if (e.target.parent.parent as Bidak)
 			{
-				Bidak(e.target.parent.parent).klikSaya();
-				bidakTerklik = Bidak(e.target.parent.parent);
+				if (Bidak(e.target.parent.parent).status)
+				{
+					Bidak(e.target.parent.parent).klikSaya();
+					bidakTerklik = Bidak(e.target.parent.parent);
+						//trace(KelasMacan.jumlahKoneksiValid(bidakTerklik) + " ");
+				}
 			}
 			else if ((e.target as Pijakan) || (e.target.parent as Pijakan))
 			{
@@ -64,20 +72,95 @@
 				}
 				if (bidakTerklik != null)
 				{
+					var loncat:Boolean = false;
+					var twX:Tween = null;
+					if (bidakTerklik.getPijakan() != null)
+					{
+						arrBidakTerloncati = KelasMacan.bidakTerloncatiMacan(bidakTerklik.getPijakan(), pijakanTerklik);
+						if (arrBidakTerloncati.length == 2)
+							loncat = true;
+					}
 					if (aturan.setLangkah(bidakTerklik, pijakanTerklik))
 					{
 						bidakTerklik.klikSaya();
-						var twX:Tween = new Tween(bidakTerklik, "x", Regular.easeInOut, bidakTerklik.x, pijakanTerklik.x, 10);
+						twX = new Tween(bidakTerklik, "x", Regular.easeInOut, bidakTerklik.x, pijakanTerklik.x, 10);
 						var twY:Tween = new Tween(bidakTerklik, "y", Regular.easeInOut, bidakTerklik.y, pijakanTerklik.y, 10);
+						if (bidakTerklik.tipeBidak == "anak")
+							geserBidakAnak();
 					}
+					
+					if (loncat)
+						twX.addEventListener(TweenEvent.MOTION_FINISH, tes);
+					
 					bidakTerklik = null;
+						//var ev:Event = new Event("bidakBerpijak");
+						//dispatchEvent(ev);
 				}
-				
 			}
-			else {
+			else
+			{
 				//trace(e.target);
 			}
 		}
+		
+		private function tes(e:TweenEvent):void
+		{
+			for (var bt = 0; bt < arrBidakTerloncati.length; bt++)
+			{
+				geserBidakAnakPasif(arrBidakTerloncati[bt]);
+				arrBidakTerloncati[bt].setDisable();
+				KelasMacan.hapusBidakAktif(arrBidakTerloncati[bt]);
+				arrBidakTerloncati[bt].getPijakanSebelum().setBidak(null);
+			}
+		
+		}
+		
+		protected function geserBidakAnak():void
+		{
+			tween = new Array();
+			var aArr:Array = new Array();
+			var bidak:Array = bidakAktif.concat(bidakPasif);
+			
+			for (var a = 0; a < bidak.length; a++)
+			{
+				//trace(bidak[a].getNama());
+				if (bidak[a].tipeBidak == "anak" && bidak[a].getPijakan() == null)
+					aArr.push(bidak[a]);
+			}
+			
+			for (var r = 0; r < aArr.length; r++)
+			{
+				var tw:Tween = new Tween(aArr[r], "x", Regular.easeInOut, aArr[r].x, 220 + (r * 45), 10);
+				//trace(aArr[r].getNama()+" "+aArr[r].x);
+				tween.push(tw);
+			}
+		}
+		
+		protected function geserBidakAnakPasif(b:Bidak):void
+		{
+			var bidakTerakhir:Bidak = null;
+			var bidak:Array = bidakAktif.concat(bidakPasif);
+			
+			var korX:int = 220;
+			var korY:int = 555;
+			for (var a = 0; a < bidak.length; a++)
+			{
+				if (bidak[a].tipeBidak == "anak" && bidak[a].getPijakan() == null)
+				{
+					bidakTerakhir = bidak[a];
+				}
+			}
+			//trace(bidakTerakhir.getNama()+" "+bidakTerakhir.x+" "+bidakTerakhir.y);
+			if (bidakTerakhir != null)
+				korX = bidakTerakhir.x + 45;
+			
+			var twX:Tween = new Tween(b, "x", Regular.easeInOut, b.x, korX, 20);
+			var twY:Tween = new Tween(b, "y", Regular.easeInOut, b.y, korY, 20);
+			KelasMacan.sleep(200);
+			b.x = korX;
+			b.y = korY;
+		}
+		
 		// reset klik Pijakan dan Bidak
 		private function resetKlikPijakBidak():void
 		{
@@ -98,7 +181,7 @@
 			buatHubunganPijak();
 			buatJalur();
 			buatBidak();
-			resetBeberapaMovie();			
+			resetBeberapaMovie();
 		}
 		
 		protected function resetBeberapaMovie():void
@@ -329,15 +412,16 @@
 				}
 			}
 		}
-		private function klikHistori(e:MouseEvent):void 
+		
+		private function klikHistori(e:MouseEvent):void
 		{
-			if(kotakHistoris.visible == false)
+			if (kotakHistoris.visible == false)
 				kotakHistoris.visible = true;
 			else
 				kotakHistoris.visible = false;
 			//trace("tombol terklik");
 		}
-		
+	
 	}
 
 }

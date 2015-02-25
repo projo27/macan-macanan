@@ -23,7 +23,7 @@ package
 		
 		public static function setHistoriLangkah(b:Bidak, p:Pijakan):void {
 			historiLangkah.push(new Array((historiLangkah.length + 1), new Date().getTime(), p, b));
-			trace(historiLangkah[historiLangkah.length-1]);
+			//trace(historiLangkah[historiLangkah.length-1]);
 		}
 		
 		public static function cekBidakBelumPijak():Array {			
@@ -44,6 +44,13 @@ package
 				}
 			}
 			return bidakMacanBelumPijak;
+		}
+		
+		public static function hitungLangkahBidak(b:Bidak, p:Pijakan):int{
+			var score = 0;
+			//TODO: hitung score bidak, untuk macan, ditambah dengan cekLoncatanMacan + koneksiValid
+			score = KelasMacan.jumlahKoneksiValid + KelasMacan.bidakTerloncatiMacan(b.getPijakan(), p).length;
+			return score;
 		}
 		
 	}

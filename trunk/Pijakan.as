@@ -45,19 +45,9 @@ package
 		}
 		
 		public function pilihPijakan(e:MouseEvent):void
-		{			
-			for (var i = 0; i < this.getJumlahKoneksi(); i++)
-			{
-				if (this.getKoneksi()[i].getBidak() == null)
-					this.getKoneksi()[i].anjakKe("terpilih");
-			}
-			if (bidak != null && bidak.tipeBidak == "macan")
-			{
-				for (var x = 0; x < getJumlahKoneksiLoncat(); x++)
-				{
-					if (AturanMain.cekLoncatanMacan(bidak, getKoneksiLoncat()[x]) && this.getKoneksiLoncat()[x].getBidak() == null)
-						getKoneksiLoncat()[x].anjakKe("terpilih");
-				}
+		{	
+			for (var i = 0; i < KelasMacan.semuaPijakan(this).length; i++) {
+				KelasMacan.semuaPijakan(this)[i].anjakKe("terpilih");
 			}
 		}
 		
