@@ -12,7 +12,7 @@ package
 		
 		public function AturanMain()
 		{
-			historiLangkah = KecerdasanBuatan.getHistoriLangkah();
+			historiLangkah = KecerdasanBuatan.historiLangkah;
 		}
 		
 		public function setLangkah(b:Bidak, p:Pijakan):Boolean

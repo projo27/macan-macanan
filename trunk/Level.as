@@ -41,7 +41,7 @@
 			// constructor code
 			addEventListener(Event.ENTER_FRAME, setiapFrame);
 			addEventListener(Event.ADDED_TO_STAGE, tambahKeStage);
-			addEventListener(MouseEvent.CLICK, klikObjek);
+			stage.addEventListener(MouseEvent.CLICK, klikObjek);
 			btnHistori.addEventListener(MouseEvent.CLICK, klikHistori);
 			//addEventListener(MouseEvent.MOUSE_UP, mosUp);
 		}
@@ -49,13 +49,25 @@
 		private function klikObjek(e:MouseEvent):void
 		{
 			resetKlikPijakBidak();
-			if (e.target.parent.parent as Bidak)
+			if (e.target.parent.parent as Bidak || e.target as Bidak)
 			{
-				if (Bidak(e.target.parent.parent).status)
+				try
 				{
-					Bidak(e.target.parent.parent).klikSaya();
-					bidakTerklik = Bidak(e.target.parent.parent);
-						//trace(KelasMacan.jumlahKoneksiValid(bidakTerklik) + " ");
+					if (Bidak(e.target.parent.parent).status)
+					{
+						Bidak(e.target.parent.parent).klikSaya();
+						bidakTerklik = Bidak(e.target.parent.parent);
+							//trace(KelasMacan.jumlahKoneksiValid(bidakTerklik) + " ");
+					}
+				}
+				catch (err:Error)
+				{
+					if (Bidak(e.target).status)
+					{
+						Bidak(e.target).klikSaya();
+						bidakTerklik = Bidak(e.target);
+							//trace(KelasMacan.jumlahKoneksiValid(bidakTerklik) + " ");
+					}
 				}
 			}
 			else if ((e.target as Pijakan) || (e.target.parent as Pijakan))
@@ -87,23 +99,23 @@
 						var twY:Tween = new Tween(bidakTerklik, "y", Regular.easeInOut, bidakTerklik.y, pijakanTerklik.y, 10);
 						if (bidakTerklik.tipeBidak == "anak")
 							geserBidakAnak();
+						
+						twY.addEventListener(TweenEvent.MOTION_FINISH, jalankanAI);
 					}
 					
 					if (loncat)
-						twX.addEventListener(TweenEvent.MOTION_FINISH, tes);
+						twX.addEventListener(TweenEvent.MOTION_FINISH, pindahBidak);
 					
 					bidakTerklik = null;
-						//var ev:Event = new Event("bidakBerpijak");
-						//dispatchEvent(ev);
 				}
 			}
 			else
 			{
-				//trace(e.target);
+				trace(e.target);
 			}
 		}
 		
-		private function tes(e:TweenEvent):void
+		private function pindahBidak(e:TweenEvent):void
 		{
 			for (var bt = 0; bt < arrBidakTerloncati.length; bt++)
 			{
@@ -112,7 +124,6 @@
 				KelasMacan.hapusBidakAktif(arrBidakTerloncati[bt]);
 				arrBidakTerloncati[bt].getPijakanSebelum().setBidak(null);
 			}
-		
 		}
 		
 		protected function geserBidakAnak():void
@@ -182,6 +193,55 @@
 			buatJalur();
 			buatBidak();
 			resetBeberapaMovie();
+			jalankanAI(null);
+		}
+		
+		protected function jalankanAI(e:TweenEvent):void
+		{
+			//KelasMacan.sleep(4000);
+			if (e != null)
+			{
+				trace(e.currentTarget);
+			}
+			try
+			{
+				KecerdasanBuatan.mariMainkan();
+				var arr:Array = KecerdasanBuatan.sedangJalan;
+				var bidak:Bidak = arr[0];
+				var pijakan:Pijakan = arr[1];
+				KelasMacan.sleep(500);
+				if (bidak != null)
+				{
+					try
+					{
+						trace(bidak.getNama() + " " + bidak.getPijakanSebelum().getNama());
+					}
+					catch (er:Error)
+					{
+						trace(bidak.getNama() + " kosong ");
+					}
+					bidak.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
+					if (!bidak.terklik)
+					{
+						jalankanAI(null);
+					}
+					KelasMacan.sleep(200);
+					pijakan.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
+					trace(pijakan.getNama());
+				}
+				else
+				{
+					trace("bidak null");
+					KelasMacan.sleep(500);
+					jalankanAI(null);
+				}
+			}
+			catch (er:Error)
+			{
+				trace(er.message);
+				KelasMacan.sleep(500);
+				jalankanAI(null);
+			}
 		}
 		
 		protected function resetBeberapaMovie():void
@@ -385,7 +445,17 @@
 		
 		private function setiapFrame(e:Event):void
 		{
+		/*var arr:Array = KecerdasanBuatan.mariMainkan();
+		   var bidak:Bidak = arr[0];
+		   var pijakan:Pijakan = arr[1];
 		
+		   KelasMacan.sleep(1000);
+		
+		   trace(bidak.getNama() + " " + bidak.x + bidak.y);
+		   bidak.dispatchEvent(new MouseEvent(MouseEvent.CLICK, true, false, bidak.x, bidak.y));
+		   KelasMacan.sleep(1000);
+		   pijakan.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
+		 trace(pijakan.getNama() + " " + pijakan.x + pijakan.y);*/
 		}
 		
 		private function mosUp(e:MouseEvent):void

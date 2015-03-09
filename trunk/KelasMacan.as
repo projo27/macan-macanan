@@ -30,6 +30,11 @@ package
 			return FOLDER_BIDAK;
 		}
 		
+		public static function randomAntara(minNum:Number, maxNum:Number):Number
+		{
+			return (Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum);
+		}
+		
 		public static function getArahLawan(arah:String = "N"):String
 		{
 			var arahBerlawanan:String = null;
@@ -83,7 +88,7 @@ package
 			return b.hitTestObject(p);
 		}
 		
-		public static function semuaPijakan(p:Pijakan /* value Pijakan */):Array
+		public static function semuaPijakan(p:Pijakan):Array
 		{
 			var arr:Array = new Array();
 			var bidak:Bidak = p.getBidak();
@@ -146,16 +151,22 @@ package
 		
 		public static function jumlahKoneksiValid(b:Bidak):int
 		{
-			var jml:int = 0;
+			var jml:int = koneksiValid.length;
+			return jml;
+		}
+		
+		public static function koneksiValid(b:Bidak):Array {
+			var arr:Array = new Array();
 			if (b.getPijakan() == null)
-				return jml;
+				return arr;
 			
 			for (var j = 0; j < b.getPijakan().getTotalKoneksi(); j++)
 			{
 				if (pilihKoneksiPijak(b, b.getPijakan().getSemuaKoneksi()[j]) == true)
-					jml++;
+						arr.push(b.getPijakan().getSemuaKoneksi()[j]);
+				
 			}
-			return jml;
+			return arr;
 		}
 		
 		public static function bidakTerloncatiMacan(pAwal:Pijakan, pAkhir:Pijakan):Array
@@ -211,6 +222,18 @@ package
 					KecerdasanBuatan.bidakPasif.push(b);
 				}
 			}
+		}
+		
+		public static function pijakanBelumBerBidak():Array
+		{
+			var perpijakan:Array = new Array();
+			for (var p = 0; p < KecerdasanBuatan.pijakan.length; p++)
+			{
+				if (KecerdasanBuatan.pijakan[p].getBidak() == null)
+					perpijakan.push(KecerdasanBuatan.pijakan[p]);
+			}
+			
+			return perpijakan;
 		}
 	}
 
