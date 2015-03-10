@@ -103,7 +103,6 @@ package
 				{
 					if (KelasMacan.cekLoncatanMacan(bidak, p.getKoneksiLoncat()[x]) && p.getKoneksiLoncat()[x].getBidak() == null)
 						arr.push(p.getKoneksiLoncat()[x]);
-					;
 				}
 			}
 			return arr;

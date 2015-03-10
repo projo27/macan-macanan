@@ -15,6 +15,8 @@ package
 		public static var thePlayer:Array = new Array("AI", "AI");
 		public static var sedangJalan:Array = new Array();
 		
+		public static var tempArr:Array = new Array();
+		
 		//private static var bidakBelumPijak:Array = new Array();
 		
 		public function KecerdasanBuatan()
@@ -115,20 +117,19 @@ package
 		public static function mariMainkan():void
 		{
 			//var arr:Array = new Array();
-			trace("mari main " + historiLangkah.length);
-			if (historiLangkah.length % 2 == 0)
+			//trace("mari main " + historiLangkah.length);
+			if (historiLangkah.length % 2 == 0 && thePlayer[0] == "AI")
 			{
 				sedangJalan = jalankanMacan();
 			}
-			else
+			else if (historiLangkah.length % 2 == 1 && thePlayer[1] == "AI")
 				sedangJalan = jalankanAnak();
 			KelasMacan.sleep(500);
 			//return arr;
 		}
 		
 		public static function jalankanMacan():Array
-		{ //return array(bidak, pijakan)
-			//trace("mari main " + historiLangkah.length);
+		{
 			var b:Bidak = new Bidak();
 			var p:Pijakan = new Pijakan();
 			var melangkah:Array = new Array();
@@ -140,8 +141,6 @@ package
 			}
 			else if (historiLangkah.length == 2)
 			{
-				//KelasMacan.sleep(100);
-				//trace(cekBidakMacanBelumPijak().length);
 				melangkah.push(bidakMacanAktif()[1]);
 				p = KelasMacan.pijakanBelumBerBidak()[KelasMacan.randomAntara(0, KelasMacan.pijakanBelumBerBidak().length)];
 				//trace(p.getNama() );
@@ -159,11 +158,9 @@ package
 		
 		public static function jalankanAnak():Array
 		{
-			//trace("mari main " + historiLangkah.length);
 			var melangkah:Array = new Array();
 			var b:Bidak = new Bidak();
 			var p:Pijakan = new Pijakan();
-			//trace(cekBidakAnakBelumPijak().length);
 			
 			if (cekBidakAnakBelumPijak().length != 0)
 			{	
@@ -172,17 +169,14 @@ package
 				if (hitungLangkahBidak(b, p) == 0 || b.getPijakan() != null) return jalankanAnak();
 				p = KelasMacan.pijakanBelumBerBidak()[KelasMacan.randomAntara(0, KelasMacan.pijakanBelumBerBidak().length)];
 				
-				//trace(p.getNama());
 				melangkah.push(b);
 				melangkah.push(p);
 			}
 			else
 			{
 				b = bidakAnakAktif()[KelasMacan.randomAntara(0, bidakAnakAktif().length)];
-				//trace(b.getNama());
-				if (hitungLangkahBidak(b, p) == 0 || b.getPijakan() != null) return jalankanAnak();
 				p = KelasMacan.koneksiValid(b)[KelasMacan.randomAntara(0, KelasMacan.jumlahKoneksiValid(b))];
-				//trace(p.getNama());
+				//if (hitungLangkahBidak(b, p) == 0 || b.getPijakan() != null) p = null;// return jalankanAnak();
 				
 				melangkah.push(b);
 				melangkah.push(p);
