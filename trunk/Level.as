@@ -12,6 +12,7 @@
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
 	import flash.system.System;
+	import flash.text.TextField;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	import flash.utils.Timer;
@@ -27,13 +28,15 @@
 		public var bidakTerklik:Bidak;
 		public var pijakanTerklik:Pijakan;
 		
-		private var tween:Array;
-		
 		var aturan:AturanMain;
 		var arrBidakTerloncati:Array = new Array();
 		
+		private var tween:Array;
+		protected var waktu:int;
+		
 		protected var timer:Timer;
 		protected var timerGC:Timer;
+		protected var timerClock:Timer;
 		
 		public function Level()
 		{
@@ -43,26 +46,36 @@
 			bidakPasif = KecerdasanBuatan.bidakPasif;
 			bidakTerklik = new Bidak;
 			pijakanTerklik = new Pijakan;
+			waktu = 0;
 			// constructor code
-			addEventListener(Event.ENTER_FRAME, setiapFrame);
 			addEventListener(Event.ADDED_TO_STAGE, tambahKeStage);
 			stage.addEventListener(MouseEvent.CLICK, klikObjek);
 			btnHistori.addEventListener(MouseEvent.CLICK, klikHistori);
 			
-			timer = new Timer(3000, 1);
+			timer = new Timer(3000, 1); // timer menjalankan AI awal
 			timer.addEventListener(TimerEvent.TIMER_COMPLETE, awalJalankanAI);
 			timer.start();
 			
-			timerGC = new Timer(10000, 0);
+			timerGC = new Timer(10000, 0); // timer Garbage Collector
 			timerGC.addEventListener(TimerEvent.TIMER_COMPLETE, releaseGC);
 			timerGC.start();
-			//addEventListener(MouseEvent.MOUSE_UP, mosUp);
+			
+			timerClock = new Timer(1000, 1); //timer Waktu
+			timerClock.addEventListener(TimerEvent.TIMER_COMPLETE, tambahDetik);
+			timerClock.start();
 		}
 		
-		private function releaseGC(e:TimerEvent):void 
+		protected function tambahDetik(e:TimerEvent):void
 		{
-			System.gc();
-			System.gc();
+			waktu++;
+			(MovieClip(kotakWaktu).getChildByName("tWaktu") as TextField).text = KelasMacan.detikKeWaktu(waktu);
+			timerClock.start();
+		}
+		
+		protected function releaseGC(e:TimerEvent):void
+		{
+			System.gc(); // release garbage
+			timerGC.start();
 		}
 		
 		private function klikObjek(e:MouseEvent):void
@@ -102,7 +115,7 @@
 				
 				if (bidakTerklik != null)
 				{
-					var loncat:Boolean = false;
+					var loncat:Boolean = false; // set loncat ke false
 					var twX:Tween;
 					var twY:Tween;
 					if (bidakTerklik.getPijakan() != null)
@@ -117,16 +130,12 @@
 						bidakTerklik.klikSaya();
 						twX = new Tween(bidakTerklik, "x", Regular.easeInOut, bidakTerklik.x, pijakanTerklik.x, 10);
 						twY = new Tween(bidakTerklik, "y", Regular.easeInOut, bidakTerklik.y, pijakanTerklik.y, 10);
-						if (bidakTerklik.tipeBidak == "anak")
-						{
-							geserBidakAnak();
-						}
+						if (bidakTerklik.tipeBidak == "anak") geserBidakAnak();
 						
-						if (!loncat)
-							twY.addEventListener(TweenEvent.MOTION_FINISH, jalankanAI);
+						if (!loncat) twY.addEventListener(TweenEvent.MOTION_FINISH, jalankanAI); // jika tidak loncat langsung jalankan AI
 					}
 					
-					if (loncat)
+					if (loncat) // jika loncat, pindahkan bidak terlebih dahulu
 						twX.addEventListener(TweenEvent.MOTION_FINISH, pindahBidak);
 					
 					bidakTerklik = null;
@@ -134,7 +143,7 @@
 			}
 			else
 			{
-				trace(e.target);
+				//trace(e.target);
 			}
 		}
 		
@@ -161,7 +170,6 @@
 			
 			for (var a = 0; a < bidak.length; a++)
 			{
-				//trace(bidak[a].getNama());
 				if (bidak[a].tipeBidak == "anak" && bidak[a].getPijakan() == null)
 					aArr.push(bidak[a]);
 			}
@@ -169,7 +177,6 @@
 			for (var r = 0; r < aArr.length; r++)
 			{
 				var tw:Tween = new Tween(aArr[r], "x", Regular.easeInOut, aArr[r].x, 220 + (r * 45), 10);
-				//trace(aArr[r].getNama()+" "+aArr[r].x);
 				tween.push(tw);
 			}
 		}
@@ -190,10 +197,10 @@
 			}
 			//trace(bidakTerakhir.getNama()+" "+bidakTerakhir.x+" "+bidakTerakhir.y);
 			if (bidakTerakhir != null)
-				korX = bidakTerakhir.x + 45;
+				korX = bidakTerakhir.x + 60;
 			
 			var twX:Tween = new Tween(b, "x", Regular.easeInOut, b.x, korX, 20);
-			var twY:Tween = new Tween(b, "y", Regular.easeInOut, b.y, korY, 20);			
+			var twY:Tween = new Tween(b, "y", Regular.easeInOut, b.y, korY, 20);
 			KelasMacan.sleep(200);
 			b.x = korX;
 			b.y = korY;
@@ -224,20 +231,20 @@
 		
 		protected function awalJalankanAI(e:TimerEvent):void
 		{
-			if(KecerdasanBuatan.thePlayer[0] == "AI")
+			if (KecerdasanBuatan.thePlayer[0] == "AI")
 				jalankanAI(null);
 		}
 		
 		protected function mulaiJalankanAI(e:TimerEvent):void
 		{
-			//if(KecerdasanBuatan.thePlayer[0] == "AI" || KecerdasanBuatan.thePlayer[1] == "AI")
+			if (KecerdasanBuatan.historiLangkah.length % 2 == 0 && KecerdasanBuatan.thePlayer[0] == "AI")
 				jalankanAI(null);
+			else if (KecerdasanBuatan.historiLangkah.length % 2 == 1 && KecerdasanBuatan.thePlayer[1] == "AI")
+				jalankanAI(null);		
 		}
 		
 		protected function jalankanAI(e:TweenEvent = null):void
 		{
-			//KelasMacan.sleep(4000);
-			//System.gc();
 			if (e != null)
 			{
 				//trace(e.currentTarget);
@@ -251,33 +258,25 @@
 				var pijakan:Pijakan = arr[1];
 				
 				if (bidak != null && pijakan != null)
-				{
-					try
+				{					
+					/*try
 					{
 						trace(bidak.getNama() + " " + bidak.getPijakanSebelum().getNama());
 					}
 					catch (er:Error)
 					{
 						trace(bidak.getNama() + " kosong ");
-					}
+					}*/
 					
 					bidak.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
 					
 					if (!bidak.terklik)
-					{
 						jalankanAI(null);
-					}
 					else
-					{
 						pijakan.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
-						//System.gc();
-						//System.gc();
-					}
 				}
 				else
 				{
-					//trace("bidak null");
-					//KelasMacan.sleep(500);
 					timer = new Timer(200, 1);
 					timer.addEventListener(TimerEvent.TIMER_COMPLETE, mulaiJalankanAI);
 					timer.start();
@@ -285,7 +284,7 @@
 			}
 			catch (er:Error)
 			{
-				trace(er.message);
+				//trace(er.message + " " + arr[0] + " " + arr[1]);
 				//KelasMacan.sleep(500);
 				timer = new Timer(200, 1);
 				timer.addEventListener(TimerEvent.TIMER_COMPLETE, mulaiJalankanAI);
@@ -491,54 +490,13 @@
 				addChild(pB);
 			}
 		}
-		
-		private function setiapFrame(e:Event):void
-		{
-		/*var arr:Array = KecerdasanBuatan.mariMainkan();
-		   var bidak:Bidak = arr[0];
-		   var pijakan:Pijakan = arr[1];
-		
-		   KelasMacan.sleep(1000);
-		
-		   trace(bidak.getNama() + " " + bidak.x + bidak.y);
-		   bidak.dispatchEvent(new MouseEvent(MouseEvent.CLICK, true, false, bidak.x, bidak.y));
-		   KelasMacan.sleep(1000);
-		   pijakan.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
-		 trace(pijakan.getNama() + " " + pijakan.x + pijakan.y);*/
-		}
-		
-		private function mosUp(e:MouseEvent):void
-		{
-			if (e.target.parent.parent as Bidak)
-			{
-				var b:Bidak = e.target.parent.parent as Bidak;
-				var posAwalX = b.x;
-				var posAwalY = b.y;
-				var pij:Array = new Array();
-				for (var p = 0; p < pijakan.length; p++)
-				{
-					if (Bidak(e.target.parent.parent).hitTestObject(pijakan[p]))
-					{
-						pij.push(pijakan[p]);
-					}
-				}
 				
-				if (pij.length > 1)
-				{
-					
-					e.target.parent.parent.x = posAwalX;
-					e.target.parent.parent.y = posAwalY;
-				}
-			}
-		}
-		
 		private function klikHistori(e:MouseEvent):void
 		{
 			if (kotakHistoris.visible == false)
 				kotakHistoris.visible = true;
 			else
 				kotakHistoris.visible = false;
-			//trace("tombol terklik");
 		}
 	
 	}

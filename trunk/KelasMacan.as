@@ -71,6 +71,17 @@ package
 			return arahBerlawanan;
 		}
 		
+		public static function detikKeWaktu(s:int):String {
+			var detik:int = 0;
+			var menit:int = 0;
+			var jam:int = 0;
+			
+			jam = (s / 3600) >= 1 ? Math.floor(s / 3600) : 0;
+			menit = (s / 60) >= 1 ? Math.floor(s / 60) : 0;
+			detik = (s % 60);
+			return lpad(jam, 2) + ":" + lpad(menit, 2) + ":" + lpad(detik, 2);
+		}
+		
 		public static function sleep(ms:int):void
 		{
 			var init:int = getTimer();
