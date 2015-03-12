@@ -124,7 +124,7 @@ package
 			}
 			else if (historiLangkah.length % 2 == 1 && thePlayer[1] == "AI")
 				sedangJalan = jalankanAnak();
-			KelasMacan.sleep(500);
+			//KelasMacan.sleep(500);
 			//return arr;
 		}
 		
@@ -175,9 +175,8 @@ package
 			else
 			{
 				b = bidakAnakAktif()[KelasMacan.randomAntara(0, bidakAnakAktif().length)];
-				p = KelasMacan.koneksiValid(b)[KelasMacan.randomAntara(0, KelasMacan.jumlahKoneksiValid(b))];
+				p = KelasMacan.semuaPijakan(b.getPijakan())[KelasMacan.randomAntara(0, KelasMacan.semuaPijakan(b.getPijakan()).length)];
 				//if (hitungLangkahBidak(b, p) == 0 || b.getPijakan() != null) p = null;// return jalankanAnak();
-				
 				melangkah.push(b);
 				melangkah.push(p);
 			}
