@@ -1,0 +1,1 @@
+Dimulai dari project kuliah dibuat mennggunakan flash dan as3, yang diharapkan dapat dikembangkan ke platform yang lain
