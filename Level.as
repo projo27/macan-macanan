@@ -33,6 +33,8 @@
 		
 		private var tween:Array;
 		protected var waktu:int;
+		protected var apaMenang:Boolean;
+		protected var bidakMenang:String;
 		
 		protected var timer:Timer;
 		protected var timerGC:Timer;
@@ -47,6 +49,8 @@
 			bidakTerklik = new Bidak;
 			pijakanTerklik = new Pijakan;
 			waktu = 0;
+			apaMenang = false;
+			bidakMenang = "";
 			// constructor code
 			addEventListener(Event.ADDED_TO_STAGE, tambahKeStage);
 			stage.addEventListener(MouseEvent.CLICK, klikObjek);
@@ -81,8 +85,19 @@
 		private function klikObjek(e:MouseEvent):void
 		{
 			resetKlikPijakBidak();
+			
 			if (e.target.parent.parent as Bidak || e.target as Bidak)
-			{
+			{			
+				if (KecerdasanBuatan.cekMenang()[0]) // jika menang
+				{
+					apaMenang = true;
+					bidakMenang = KecerdasanBuatan.cekMenang()[1];
+					timer.stop();
+					timerClock.stop();
+					MovieClip(modalLevel).visible = true;
+					return;
+				}
+				
 				try
 				{
 					if (Bidak(e.target.parent.parent).status)
@@ -130,13 +145,22 @@
 						bidakTerklik.klikSaya();
 						twX = new Tween(bidakTerklik, "x", Regular.easeInOut, bidakTerklik.x, pijakanTerklik.x, 10);
 						twY = new Tween(bidakTerklik, "y", Regular.easeInOut, bidakTerklik.y, pijakanTerklik.y, 10);
-						if (bidakTerklik.tipeBidak == "anak") geserBidakAnak();
+						if (bidakTerklik.tipeBidak == "anak")
+							geserBidakAnak();
 						
-						if (!loncat) twY.addEventListener(TweenEvent.MOTION_FINISH, jalankanAI); // jika tidak loncat langsung jalankan AI
+						if (!loncat)
+						{
+							twY.addEventListener(TweenEvent.MOTION_FINISH, mulaiJalankanAI); // jika tidak loncat langsung jalankan AI
+							MovieClip(kotakWaktu).gotoAndPlay(1);
+						}
+						
 					}
 					
 					if (loncat) // jika loncat, pindahkan bidak terlebih dahulu
+					{
 						twX.addEventListener(TweenEvent.MOTION_FINISH, pindahBidak);
+						MovieClip(kotakWaktu).gotoAndPlay(1);
+					}
 					
 					bidakTerklik = null;
 				}
@@ -157,7 +181,7 @@
 				arrBidakTerloncati[bt].getPijakanSebelum().setBidak(null);
 			}
 			
-			timer = new Timer(500, 1);
+			timer = new Timer(800, 1);
 			timer.addEventListener(TimerEvent.TIMER_COMPLETE, mulaiJalankanAI);
 			timer.start();
 		}
@@ -191,13 +215,11 @@
 			for (var a = 0; a < bidak.length; a++)
 			{
 				if (bidak[a].tipeBidak == "anak" && bidak[a].getPijakan() == null)
-				{
 					bidakTerakhir = bidak[a];
-				}
 			}
 			//trace(bidakTerakhir.getNama()+" "+bidakTerakhir.x+" "+bidakTerakhir.y);
 			if (bidakTerakhir != null)
-				korX = bidakTerakhir.x + 60;
+				korX = bidakTerakhir.x + 45;
 			
 			var twX:Tween = new Tween(b, "x", Regular.easeInOut, b.x, korX, 20);
 			var twY:Tween = new Tween(b, "y", Regular.easeInOut, b.y, korY, 20);
@@ -231,16 +253,16 @@
 		
 		protected function awalJalankanAI(e:TimerEvent):void
 		{
-			if (KecerdasanBuatan.thePlayer[0] == "AI")
+			if (KecerdasanBuatan.getPlayerMacan() == "AI")
 				jalankanAI(null);
 		}
 		
-		protected function mulaiJalankanAI(e:TimerEvent):void
+		protected function mulaiJalankanAI(e:Event):void
 		{
-			if (KecerdasanBuatan.historiLangkah.length % 2 == 0 && KecerdasanBuatan.thePlayer[0] == "AI")
+			if (KecerdasanBuatan.historiLangkah.length % 2 == 0 && KecerdasanBuatan.getPlayerMacan() == "AI")
 				jalankanAI(null);
-			else if (KecerdasanBuatan.historiLangkah.length % 2 == 1 && KecerdasanBuatan.thePlayer[1] == "AI")
-				jalankanAI(null);		
+			else if (KecerdasanBuatan.historiLangkah.length % 2 == 1 && KecerdasanBuatan.getPlayerAnak() == "AI")
+				jalankanAI(null);
 		}
 		
 		protected function jalankanAI(e:TweenEvent = null):void
@@ -258,16 +280,7 @@
 				var pijakan:Pijakan = arr[1];
 				
 				if (bidak != null && pijakan != null)
-				{					
-					/*try
-					{
-						trace(bidak.getNama() + " " + bidak.getPijakanSebelum().getNama());
-					}
-					catch (er:Error)
-					{
-						trace(bidak.getNama() + " kosong ");
-					}*/
-					
+				{
 					bidak.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
 					
 					if (!bidak.terklik)
@@ -277,6 +290,14 @@
 				}
 				else
 				{
+					try
+					{
+						trace(bidak.getNama() + " " + pijakan.getNama());
+					}
+					catch (er:Error)
+					{
+						trace(bidak.getNama() + " kosong ");
+					}
 					timer = new Timer(200, 1);
 					timer.addEventListener(TimerEvent.TIMER_COMPLETE, mulaiJalankanAI);
 					timer.start();
@@ -296,6 +317,84 @@
 		{
 			MovieClip(kotakChat).visible = false;
 			MovieClip(kotakHistoris).visible = false;
+			MovieClip(modalLevel).visible = false;
+		}
+		
+		protected function buatTempatPijak():void
+		{
+			// di sini kita akan membuat Kumpulan Pijakan tengah (Center) 5x5
+			// selisih untuk tiap pijakan (x=90, y=10)
+			// pijakan pertama 200,480, kedua 200, 390
+			var letakX:Number = 0;
+			var letakY:Number = 0;
+			for (var i:int = 0; i < 25; i++)
+			{
+				letakY = 480 - ((i % 5) * 90);
+				if (i < 5)
+					letakX = 200 + (0 * 90);
+				else if (i < 10)
+					letakX = 200 + (1 * 90);
+				else if (i < 15)
+					letakX = 200 + (2 * 90);
+				else if (i < 20)
+					letakX = 200 + (3 * 90);
+				else if (i < 25)
+					letakX = 200 + (4 * 90);
+				
+				var p:Pijakan = new Pijakan();
+				p.x = letakX;
+				p.y = letakY;
+				p.setText("C" + (i + 1));
+				
+				pijakan.push(p);
+				parentPijakan.addChild(p);
+			}
+			
+			// buat pijakan atas (A) 3x2
+			for (var a:int = 0; a < 6; a++)
+			{
+				if (a < 3)
+				{
+					letakX = 40;
+					letakY = 460 - (a * 160);
+				}
+				else if (a < 6)
+				{
+					letakX = 40 + 80;
+					letakY = 380 - ((a % 3) * 80);
+				}
+				
+				var pA:Pijakan = new Pijakan();
+				pA.x = letakX;
+				pA.y = letakY;
+				pA.setText("A" + (a + 1));
+				
+				pijakan.push(pA);
+				parentPijakan.addChild(pA);
+			}
+			
+			// buat pijakan bawah (B) 3x2
+			for (var b:int = 0; b < 6; b++)
+			{
+				if (b < 3)
+				{
+					letakX = 640;
+					letakY = 380 - ((b % 3) * 80);
+				}
+				else if (b < 6)
+				{
+					letakX = 640 + 80;
+					letakY = 460 - ((b % 3) * 160);
+				}
+				
+				var pB:Pijakan = new Pijakan();
+				pB.x = letakX;
+				pB.y = letakY;
+				pB.setText("B" + (b + 1));
+				
+				pijakan.push(pB);
+				parentPijakan.addChild(pB);
+			}
 		}
 		
 		protected function buatBidak():void
@@ -307,7 +406,7 @@
 				bidA.x = 175 + (a * 45);
 				bidA.y = 555;
 				bidakAktif.push(bidA);
-				addChild(bidA);
+				parentBidak.addChild(bidA);
 			}
 			
 			//ini untuk membuat bidak macan
@@ -317,7 +416,7 @@
 				bid.x = 65 + (b * 45);
 				bid.y = 555;
 				bidakAktif.push(bid);
-				addChild(bid);
+				parentBidak.addChild(bid);
 			}
 		}
 		
@@ -414,83 +513,6 @@
 			return null;
 		}
 		
-		protected function buatTempatPijak():void
-		{
-			// di sini kita akan membuat Kumpulan Pijakan tengah (Center) 5x5
-			// selisih untuk tiap pijakan (x=90, y=10)
-			// pijakan pertama 200,480, kedua 200, 390
-			var letakX:Number = 0;
-			var letakY:Number = 0;
-			for (var i:int = 0; i < 25; i++)
-			{
-				letakY = 480 - ((i % 5) * 90);
-				if (i < 5)
-					letakX = 200 + (0 * 90);
-				else if (i < 10)
-					letakX = 200 + (1 * 90);
-				else if (i < 15)
-					letakX = 200 + (2 * 90);
-				else if (i < 20)
-					letakX = 200 + (3 * 90);
-				else if (i < 25)
-					letakX = 200 + (4 * 90);
-				
-				var p:Pijakan = new Pijakan();
-				p.x = letakX;
-				p.y = letakY;
-				p.setText("C" + (i + 1));
-				
-				pijakan.push(p);
-				addChild(p);
-			}
-			
-			// buat pijakan atas (A) 3x2
-			for (var a:int = 0; a < 6; a++)
-			{
-				if (a < 3)
-				{
-					letakX = 40;
-					letakY = 460 - (a * 160);
-				}
-				else if (a < 6)
-				{
-					letakX = 40 + 80;
-					letakY = 380 - ((a % 3) * 80);
-				}
-				
-				var pA:Pijakan = new Pijakan();
-				pA.x = letakX;
-				pA.y = letakY;
-				pA.setText("A" + (a + 1));
-				
-				pijakan.push(pA);
-				addChild(pA);
-			}
-			
-			// buat pijakan bawah (B) 3x2
-			for (var b:int = 0; b < 6; b++)
-			{
-				if (b < 3)
-				{
-					letakX = 640;
-					letakY = 380 - ((b % 3) * 80);
-				}
-				else if (b < 6)
-				{
-					letakX = 640 + 80;
-					letakY = 460 - ((b % 3) * 160);
-				}
-				
-				var pB:Pijakan = new Pijakan();
-				pB.x = letakX;
-				pB.y = letakY;
-				pB.setText("B" + (b + 1));
-				
-				pijakan.push(pB);
-				addChild(pB);
-			}
-		}
-				
 		private function klikHistori(e:MouseEvent):void
 		{
 			if (kotakHistoris.visible == false)

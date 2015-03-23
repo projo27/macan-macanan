@@ -161,7 +161,7 @@ package
 		
 		public static function jumlahKoneksiValid(b:Bidak):int
 		{
-			var jml:int = koneksiValid.length;
+			var jml:int = KelasMacan.koneksiValid(b).length;
 			return jml;
 		}
 		
@@ -173,7 +173,7 @@ package
 			for (var j = 0; j < b.getPijakan().getTotalKoneksi(); j++)
 			{
 				if (pilihKoneksiPijak(b, b.getPijakan().getSemuaKoneksi()[j]) == true)
-						arr.push(b.getPijakan().getSemuaKoneksi()[j]);
+					arr.push(b.getPijakan().getSemuaKoneksi()[j]);
 				
 			}
 			return arr;
