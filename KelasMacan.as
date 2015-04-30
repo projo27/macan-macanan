@@ -11,6 +11,7 @@ package
 	{
 		
 		static const FOLDER_BIDAK:String = "gambar/bidak/";
+		public static var waktunya:String = "";
 		
 		public function KelasMacan()
 		{
@@ -40,38 +41,21 @@ package
 			var arahBerlawanan:String = null;
 			switch (arah)
 			{
-				case "N": 
-					arahBerlawanan = "S";
-					break;
-				case "NE": 
-					arahBerlawanan = "SW";
-					break;
-				case "E": 
-					arahBerlawanan = "W";
-					break;
-				case "SE": 
-					arahBerlawanan = "NW";
-					break;
-				case "S": 
-					arahBerlawanan = "N";
-					break;
-				case "SW": 
-					arahBerlawanan = "NE";
-					break;
-				case "W": 
-					arahBerlawanan = "E";
-					break;
-				case "NW": 
-					arahBerlawanan = "SE";
-					break;
-				default: 
-					arahBerlawanan = null;
-					break;
+				case "N": 	arahBerlawanan = "S"; 	break;
+				case "NE":  arahBerlawanan = "SW"; 	break;
+				case "E":  	arahBerlawanan = "W"; 	break;
+				case "SE":  arahBerlawanan = "NW"; 	break;
+				case "S":  	arahBerlawanan = "N"; 	break;
+				case "SW":  arahBerlawanan = "NE"; 	break;
+				case "W":  	arahBerlawanan = "E"; 	break;
+				case "NW":  arahBerlawanan = "SE"; 	break;
+				default:  	arahBerlawanan = null; 	break;
 			}
 			return arahBerlawanan;
 		}
 		
-		public static function detikKeWaktu(s:int):String {
+		public static function detikKeWaktu(s:int):String
+		{
 			var detik:int = 0;
 			var menit:int = 0;
 			var jam:int = 0;
@@ -94,10 +78,10 @@ package
 			}
 		}
 		
-		public static function apaKenaPijakan(b:Bidak, p:Pijakan):Boolean
+		/*public static function apaKenaPijakan(b:Bidak, p:Pijakan):Boolean
 		{
 			return b.hitTestObject(p);
-		}
+		}*/
 		
 		public static function semuaPijakan(p:Pijakan):Array
 		{
@@ -165,7 +149,8 @@ package
 			return jml;
 		}
 		
-		public static function koneksiValid(b:Bidak):Array {
+		public static function koneksiValid(b:Bidak):Array
+		{
 			var arr:Array = new Array();
 			if (b.getPijakan() == null)
 				return arr;

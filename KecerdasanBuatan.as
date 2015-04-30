@@ -1,6 +1,7 @@
 package
 {
-	
+	import flash.display.MovieClip;
+		
 	/**
 	 * ...
 	 * @author projo
@@ -12,12 +13,16 @@ package
 		public static var bidakPasif:Array = new Array();
 		public static var pijakan:Array = new Array();
 		public static var langkahKe:int = historiLangkah.length;
-		public static var thePlayer:Array = new Array("AI", "AI");
+		public static var thePlayer:Array = new Array("AI", "AI"); // SET "PLAYER" ATAU "AI" [0] = MACAN, [1] = ANAK
 		public static var sedangJalan:Array = new Array();
+		public static var levelPermainan:int = 1;
+		
+		public static var arrayMenang:Array = new Array(false, "");
 		
 		public static var tempPijakan:Array = new Array();
 		public static var tempbidakAktif:Array = new Array();
 		
+		public static const MAX_LEVEL_PERMAINAN:int = 3;
 		//private static var bidakBelumPijak:Array = new Array();
 		
 		public function KecerdasanBuatan()
@@ -30,10 +35,17 @@ package
 			return historiLangkah;
 		}
 		
+		public static function setLevelPermainan(lev:int = 1):void {
+			if (lev > MAX_LEVEL_PERMAINAN) 
+				levelPermainan = MAX_LEVEL_PERMAINAN;
+			else levelPermainan = lev;
+		}
+		
 		public static function setHistoriLangkah(b:Bidak, p:Pijakan):void
 		{
-			historiLangkah.push(new Array((historiLangkah.length + 1), new Date().getTime(), p, b));
-			//trace(historiLangkah[historiLangkah.length-1]);
+			historiLangkah.push(new Array((historiLangkah.length + 1), new Date().getTime(),KelasMacan.waktunya, p, b));
+			//trace(historiLangkah[historiLangkah.length-1]);			
+			trace((historiLangkah.length - 1) + " | " +KelasMacan.waktunya+" | "+ p.getNama() + " | " + b.getNama());
 		}
 		
 		public static function cekBidakBelumPijak():Array
@@ -101,7 +113,6 @@ package
 		{
 			var score = 0;
 			
-			//TODO: hitung score bidak, untuk macan, ditambah dengan cekLoncatanMacan + koneksiValid
 			if (b.tipeBidak == "macan")
 			{
 				//score = KelasMacan.jumlahKoneksiValid(b) + KelasMacan.bidakTerloncatiMacan(b.getPijakan(), p).length;
@@ -114,30 +125,21 @@ package
 		
 		public static function getPlayerMacan():String
 		{
-			return thePlayer[0];
+			return thePlayer[0]; // dapatkan player 1
 		}
 		
 		public static function getPlayerAnak():String
 		{
-			return thePlayer[1];
+			return thePlayer[1]; // dapatkan player 2
 		}
 		
 		public static function mariMainkan():void
 		{
 			sedangJalan = new Array(null, null);
-			//trace(KecerdasanBuatan.cekMenang() + " " + KecerdasanBuatan.cekMenang()[1]);
-			//if (cekMenang()[0] == false)
-			//{
-			
 			if (historiLangkah.length % 2 == 0 && getPlayerMacan() == "AI") // jika langkah ganjil dan player macan = AI
 				sedangJalan = jalankanMacan();
 			else if (historiLangkah.length % 2 == 1 && getPlayerAnak() == "AI") // jika langkah genap dan player anak = AI
 				sedangJalan = jalankanAnak();
-			//}
-			//else
-			//{
-			//trace(cekMenang()[0] + " " + cekMenang()[1]);
-			//}
 		}
 		
 		public static function jalankanMacan():Array
@@ -153,19 +155,15 @@ package
 			else if (historiLangkah.length == 2)
 			{
 				melangkah.push(bidakMacanAktif()[1]);
-				p = KelasMacan.pijakanBelumBerBidak()[KelasMacan.randomAntara(0, KelasMacan.pijakanBelumBerBidak().length)];
-				//trace(p.getNama() );
-				melangkah.push(p);
+				melangkah.push(KelasMacan.pijakanBelumBerBidak()[KelasMacan.randomAntara(0, KelasMacan.pijakanBelumBerBidak().length)]);
 			}
 			else
 			{
 				b = bidakMacanAktif()[KelasMacan.randomAntara(0, 1)];
 				p = KelasMacan.koneksiValid(b)[KelasMacan.randomAntara(0, KelasMacan.jumlahKoneksiValid(b) - 1)];
 				if (hitungLangkahBidak(b) == 0)
-				{
 					return jalankanMacan();
-				}
-				//trace(hitungLangkahBidak(b, p)); 
+					
 				melangkah.push(b);
 				melangkah.push(p);
 			}
@@ -202,38 +200,37 @@ package
 		
 		public static function cekMenang():Array
 		{
-			//trace(historiLangkah.length);
-			var arr:Array = new Array();
+			arrayMenang.pop();
+			arrayMenang.pop();
 			
 			if (historiLangkah.length % 2 == 0) // jika langkah ganjil (langkah macan)
 			{
 				//trace("false");
 				if (KecerdasanBuatan.totalHitungLangkahBidak("macan") == 0)
 				{
-					arr.push(true);
-					arr.push("anak");
+					arrayMenang.push(true);
+					arrayMenang.push("anak");
 				}
 				else
 				{
-					arr.push(false);
-					arr.push("");
+					arrayMenang.push(false);
+					arrayMenang.push("");
 				}
 			}
 			else if (historiLangkah.length % 2 == 1) // jika langkah genap (langkah anak)
 			{
 				if (bidakAnakAktif().length == 4)
 				{
-					arr.push(true);
-					arr.push("macan");
+					arrayMenang.push(true);
+					arrayMenang.push("macan");
 				}
 				else
 				{
-					arr.push(false);
-					arr.push("");
+					arrayMenang.push(false);
+					arrayMenang.push("");
 				}
-			}
-			
-			return arr;
+			}			
+			return arrayMenang;
 		}
 		
 		public static function totalHitungLangkahBidak(jenisBidak:String = "macan"):int
