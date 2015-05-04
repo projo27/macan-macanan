@@ -45,8 +45,9 @@ package
 		}
 		
 		public function pilihPijakan(e:MouseEvent):void
-		{	
-			for (var i = 0; i < KelasMacan.semuaPijakan(this).length; i++) {
+		{
+			for (var i = 0; i < KelasMacan.semuaPijakan(this).length; i++)
+			{
 				KelasMacan.semuaPijakan(this)[i].anjakKe("terpilih");
 			}
 		}
@@ -131,7 +132,8 @@ package
 			for (var a = 0; a < this.arahPijakan.length; a++)
 			{
 				var l:Pijakan = getPijakLoncatByArah(arahPijakan[a]);
-				if (l != null){
+				if (l != null)
+				{
 					koneksiLoncat.push(l);
 					arahLoncat.push(arahPijakan[a]);
 				}
@@ -143,6 +145,7 @@ package
 		{
 			return koneksiLoncat;
 		}
+		
 		// mengambil arah koneksi loncat
 		public function getArahKoneksiLoncat():Array
 		{
@@ -158,7 +161,7 @@ package
 		//mengambil total koneksi (pijakan + loncat)
 		public function getTotalKoneksi():int
 		{
-			return koneksiPijakan.length + koneksiLoncat.length;
+			return koneksiPijakan.length + (koneksiLoncat.length * (2 ^ koneksiLoncat.length + 1));
 		}
 		
 		public function getSemuaKoneksi():Array
@@ -183,10 +186,8 @@ package
 		// mengambil 1 pijakan loncat berdasarkan arah
 		public function getKoneksiPijakByArah(p:Pijakan, arah:String = "N"):Pijakan
 		{
-			//trace("getkoneksipijakbyarah "+arah+" "+p.getNama());
 			for (var a = 0; a < p.arahPijakan.length; a++)
 			{
-				//trace(p.arahPijakan[a]);
 				if (p.arahPijakan[a] == arah)
 					return Pijakan(p.getKoneksi()[a]);
 			}

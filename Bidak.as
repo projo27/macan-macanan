@@ -40,11 +40,6 @@
 			nama = tipe + "_" + namaGambar;
 			this.buttonMode = true;
 			addEventListener(Event.ADDED_TO_STAGE, inisialisasi); //saat ditambahkan ke stage
-			//addEventListener(MouseEvent.MOUSE_OVER, mouseOver); // saat diatas bidak
-			//addEventListener(MouseEvent.MOUSE_OUT, mouseOut); // saat keluar bidak
-		
-			//addEventListener(MouseEvent.MOUSE_DOWN, mouseDown); //ini jika drag drop
-			//addEventListener(MouseEvent.MOUSE_UP, mouseUp); //ini jika drag drop
 		}
 		
 		private function inisialisasi(e:Event):void

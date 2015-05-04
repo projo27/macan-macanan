@@ -15,9 +15,8 @@ package
 			historiLangkah = KecerdasanBuatan.historiLangkah;
 		}
 		
-		public function setLangkah(b:Bidak, p:Pijakan):Boolean
+		public function setLangkah(b:Bidak, p:Pijakan, bid:Array = null):Boolean
 		{
-			//trace(historiLangkah.length + " " + b + " " + p);
 			if (historiLangkah.length % 2 == 1) // jika jumlah langkah ganjil, langkah selanjutnya adalah anak
 			{
 				if (b.tipeBidak != "anak") // jika tipe bidak bukan anak, maka gagal
@@ -25,7 +24,7 @@ package
 				else
 				{
 					// jika bidak anak ada yang belum mendapat pijakan, maka tidak diizinkan
-					if (KecerdasanBuatan.cekBidakBelumPijak().length > 0 && b.getPijakan() != null)
+					if (KecerdasanBuatan.cekBidakBelumPijak(bid).length > 0 && b.getPijakan() != null)
 						return false;
 				}
 			}
@@ -37,7 +36,7 @@ package
 				else // jika macan, true dan pilihBidak Pijak
 				{
 					// jika bidak macan ada yang belum mendapat pijakan maka tidak diizinkan
-					if (KecerdasanBuatan.cekBidakMacanBelumPijak().length > 0 && b.getPijakan() != null)
+					if (KecerdasanBuatan.cekBidakMacanBelumPijak(bid).length > 0 && b.getPijakan() != null)
 						return false;
 				}
 			}
@@ -51,10 +50,9 @@ package
 			return false;
 		}
 		
-		//function untuk memilih Bidak, menyimpan ke historis, mengeset pijakan dan set bidak
+		//function untuk memilih Bidak, mengeset pijakan dan set bidak
 		protected function pilihBidakPijak(b:Bidak, p:Pijakan):void
 		{
-			KecerdasanBuatan.setHistoriLangkah(b, p); //simpan langkah
 			if (b.getPijakan() != null)
 				b.getPijakan().setBidak(null); //set pijakan sebelumnya menjadi null
 			b.setPijakan(p); // set pijakan untuk bidak

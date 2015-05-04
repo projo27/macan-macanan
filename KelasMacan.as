@@ -41,15 +41,33 @@ package
 			var arahBerlawanan:String = null;
 			switch (arah)
 			{
-				case "N": 	arahBerlawanan = "S"; 	break;
-				case "NE":  arahBerlawanan = "SW"; 	break;
-				case "E":  	arahBerlawanan = "W"; 	break;
-				case "SE":  arahBerlawanan = "NW"; 	break;
-				case "S":  	arahBerlawanan = "N"; 	break;
-				case "SW":  arahBerlawanan = "NE"; 	break;
-				case "W":  	arahBerlawanan = "E"; 	break;
-				case "NW":  arahBerlawanan = "SE"; 	break;
-				default:  	arahBerlawanan = null; 	break;
+				case "N": 
+					arahBerlawanan = "S";
+					break;
+				case "NE": 
+					arahBerlawanan = "SW";
+					break;
+				case "E": 
+					arahBerlawanan = "W";
+					break;
+				case "SE": 
+					arahBerlawanan = "NW";
+					break;
+				case "S": 
+					arahBerlawanan = "N";
+					break;
+				case "SW": 
+					arahBerlawanan = "NE";
+					break;
+				case "W": 
+					arahBerlawanan = "E";
+					break;
+				case "NW": 
+					arahBerlawanan = "SE";
+					break;
+				default: 
+					arahBerlawanan = null;
+					break;
 			}
 			return arahBerlawanan;
 		}
@@ -78,11 +96,6 @@ package
 			}
 		}
 		
-		/*public static function apaKenaPijakan(b:Bidak, p:Pijakan):Boolean
-		{
-			return b.hitTestObject(p);
-		}*/
-		
 		public static function semuaPijakan(p:Pijakan):Array
 		{
 			var arr:Array = new Array();
@@ -107,9 +120,7 @@ package
 		public static function cekLoncatanMacan(b:Bidak, p:Pijakan):Boolean
 		{
 			if (bidakTerloncatiMacan(b.getPijakan(), p).length == 2 && b.tipeBidak == "macan")
-			{
-				return true;
-			}
+				return true;			
 			else
 				return false;
 		}
@@ -169,7 +180,6 @@ package
 			var arrBid:Array = new Array();
 			if (pAwal != null) // && pAwal.getBidak().tipeBidak == "macan" jika loncatan awal kosong, dan tipebidak macan
 			{
-				//trace(pAwal.getNama());
 				var arahLoncatan = "";
 				var pijakan1:Pijakan = null;
 				var pijakan2:Pijakan = null;
@@ -207,25 +217,37 @@ package
 			return arrBid;
 		}
 		
-		public static function hapusBidakAktif(b:Bidak):void
+		// set bidakAktif ataupun bidakPasif aktif maupun temporer
+		public static function hapusBidakAktif(b:Bidak, bidA:Array = null, bidP:Array = null):void
 		{
-			for (var i = 0; i < KecerdasanBuatan.bidakAktif.length; i++)
+			var bidakAktif:Array = KecerdasanBuatan.bidakAktif;
+			var bidakPasif:Array = KecerdasanBuatan.bidakPasif;
+			if (bidA != null)
 			{
-				if (KecerdasanBuatan.bidakAktif[i] == b)
+				bidakAktif = bidA;
+				bidakPasif = bidP;
+			}
+			for (var i = 0; i < bidakAktif.length; i++)
+			{
+				if (bidakAktif[i] == b)
 				{
-					KecerdasanBuatan.bidakAktif.splice([i], 1);
-					KecerdasanBuatan.bidakPasif.push(b);
+					bidakAktif.splice([i], 1);
+					bidakPasif.push(b);
 				}
 			}
 		}
 		
-		public static function pijakanBelumBerBidak():Array
+		// melihat pijakan yang belum berbidak, berdasarkan pijakan aktif atau temporer
+		public static function pijakanBelumBerBidak(pij:Array = null):Array
 		{
+			var pijakan:Array = KecerdasanBuatan.pijakan;
+			if (pij != null)
+				pijakan = pij;
 			var perpijakan:Array = new Array();
-			for (var p = 0; p < KecerdasanBuatan.pijakan.length; p++)
+			for (var p = 0; p < pijakan.length; p++)
 			{
-				if (KecerdasanBuatan.pijakan[p].getBidak() == null)
-					perpijakan.push(KecerdasanBuatan.pijakan[p]);
+				if (pijakan[p].getBidak() == null)
+					perpijakan.push(pijakan[p]);
 			}
 			
 			return perpijakan;

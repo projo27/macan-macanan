@@ -165,7 +165,9 @@
 						MovieClip(kotakWaktu).gotoAndPlay(1); // memberi efek ganti warna pada jam
 					}
 					
-					bidakTerklik = null;
+					KecerdasanBuatan.setHistoriLangkah(bidakTerklik, pijakanTerklik); //simpan langkah
+					bidakTerklik = null;					
+					
 				}
 			}
 			else

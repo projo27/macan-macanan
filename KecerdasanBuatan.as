@@ -14,16 +14,18 @@ package
 		public static var pijakan:Array = new Array();
 		public static var langkahKe:int = historiLangkah.length;
 		public static var thePlayer:Array = new Array("AI", "AI"); // SET "PLAYER" ATAU "AI" [0] = MACAN, [1] = ANAK
-		public static var sedangJalan:Array = new Array();
+		public static var sedangJalan:Array = new Array(); // [0] = Bidak, [1] = Pijakan
 		public static var levelPermainan:int = 1;
 		
-		public static var arrayMenang:Array = new Array(false, "");
+		public static var arrayMenang:Array = new Array(false, ""); // [0] = menang (true, false), [1] = Macan / Anak
 		
 		public static var tempPijakan:Array = new Array();
-		public static var tempbidakAktif:Array = new Array();
+		public static var tempBidakAktif:Array = new Array();
+		public static var tempBidakPasif:Array = new Array();
+		
+		
 		
 		public static const MAX_LEVEL_PERMAINAN:int = 3;
-		//private static var bidakBelumPijak:Array = new Array();
 		
 		public function KecerdasanBuatan()
 		{
@@ -45,66 +47,77 @@ package
 		{
 			historiLangkah.push(new Array((historiLangkah.length + 1), new Date().getTime(),KelasMacan.waktunya, p, b));
 			//trace(historiLangkah[historiLangkah.length-1]);			
-			trace((historiLangkah.length - 1) + " | " +KelasMacan.waktunya+" | "+ p.getNama() + " | " + b.getNama());
+			trace((historiLangkah.length) + " | " +KelasMacan.waktunya+" | "+ p.getNama() + " | " + b.getNama());
 		}
 		
-		public static function cekBidakBelumPijak():Array
+		//parameter bid = bidakAktif, atau tempBidakAktif
+		public static function cekBidakBelumPijak(bid:Array = null):Array
 		{
+			var bidaks:Array = bidakAktif;
+			if (bid != null)
+				bidaks = bid;
+				
 			var bidakBelumPijak:Array = new Array();
-			for (var b = 0; b < bidakAktif.length; b++)
+			for (var b = 0; b < bidaks.length; b++)
 			{
-				if (Bidak(bidakAktif[b]).getPijakan() == null)
+				if (Bidak(bidaks[b]).getPijakan() == null)
 				{
-					bidakBelumPijak.push(bidakAktif[b]);
+					bidakBelumPijak.push(bidaks[b]);
 				}
 			}
 			return bidakBelumPijak;
 		}
 		
-		public static function cekBidakMacanBelumPijak():Array
+		public static function cekBidakMacanBelumPijak(bid:Array = null):Array
 		{
 			var bidakMacanBelumPijak:Array = new Array();
-			for (var m = 0; m < cekBidakBelumPijak().length; m++)
+			for (var m = 0; m < cekBidakBelumPijak(bid).length; m++)
 			{
-				if (Bidak(cekBidakBelumPijak()[m]).tipeBidak == "macan")
+				if (Bidak(cekBidakBelumPijak(bid)[m]).tipeBidak == "macan")
 				{
-					bidakMacanBelumPijak.push(cekBidakBelumPijak()[m]);
+					bidakMacanBelumPijak.push(cekBidakBelumPijak(bid)[m]);
 				}
 			}
 			return bidakMacanBelumPijak;
 		}
 		
-		public static function cekBidakAnakBelumPijak():Array
+		public static function cekBidakAnakBelumPijak(bid:Array = null):Array
 		{
 			var bidakAnakBelumPijak:Array = new Array();
-			for (var m = 0; m < cekBidakBelumPijak().length; m++)
+			for (var m = 0; m < cekBidakBelumPijak(bid).length; m++)
 			{
-				if (Bidak(cekBidakBelumPijak()[m]).tipeBidak == "anak")
+				if (Bidak(cekBidakBelumPijak(bid)[m]).tipeBidak == "anak")
 				{
-					bidakAnakBelumPijak.push(cekBidakBelumPijak()[m]);
+					bidakAnakBelumPijak.push(cekBidakBelumPijak(bid)[m]);
 				}
 			}
 			return bidakAnakBelumPijak;
 		}
 		
-		public static function bidakMacanAktif():Array
+		public static function bidakMacanAktif(bid:Array = null):Array
 		{
+			var bidaks:Array = bidakAktif;
+			if (bid != null)
+				bidaks = bid;
 			var arrB:Array = new Array();
-			for (var b = 0; b < bidakAktif.length; b++)
+			for (var b = 0; b < bidaks.length; b++)
 			{
-				if (bidakAktif[b].tipeBidak == "macan")
-					arrB.push(bidakAktif[b]);
+				if (bidaks[b].tipeBidak == "macan")
+					arrB.push(bidaks[b]);
 			}
 			return arrB;
 		}
 		
-		public static function bidakAnakAktif():Array
+		public static function bidakAnakAktif(bid:Array = null):Array
 		{
+			var bidaks:Array = bidakAktif;
+			if (bid != null)
+				bidaks = bid;
 			var arrB:Array = new Array();
-			for (var b = 0; b < bidakAktif.length; b++)
+			for (var b = 0; b < bidaks.length; b++)
 			{
-				if (bidakAktif[b].tipeBidak == "anak")
-					arrB.push(bidakAktif[b]);
+				if (bidaks[b].tipeBidak == "anak")
+					arrB.push(bidaks[b]);
 			}
 			return arrB;
 		}
@@ -198,7 +211,7 @@ package
 			return melangkah;
 		}
 		
-		public static function cekMenang():Array
+		public static function cekMenang(bid:Array = null):Array
 		{
 			arrayMenang.pop();
 			arrayMenang.pop();
@@ -206,7 +219,7 @@ package
 			if (historiLangkah.length % 2 == 0) // jika langkah ganjil (langkah macan)
 			{
 				//trace("false");
-				if (KecerdasanBuatan.totalHitungLangkahBidak("macan") == 0)
+				if (KecerdasanBuatan.totalHitungLangkahBidak("macan", bid) == 0) // jika bidak macan langkah habis (anak menang)
 				{
 					arrayMenang.push(true);
 					arrayMenang.push("anak");
@@ -219,7 +232,7 @@ package
 			}
 			else if (historiLangkah.length % 2 == 1) // jika langkah genap (langkah anak)
 			{
-				if (bidakAnakAktif().length == 4)
+				if (bidakAnakAktif(bid).length == 4) // jika bidak Anak yang aktif tersisa 4 (macan menang)
 				{
 					arrayMenang.push(true);
 					arrayMenang.push("macan");
@@ -233,16 +246,16 @@ package
 			return arrayMenang;
 		}
 		
-		public static function totalHitungLangkahBidak(jenisBidak:String = "macan"):int
+		public static function totalHitungLangkahBidak(jenisBidak:String = "macan", bid:Array = null):int
 		{
 			var jumlahLangkah:int = 0;
 			if (jenisBidak == "macan")
 			{
-				if (cekBidakMacanBelumPijak().length == 0)
+				if (cekBidakMacanBelumPijak(bid).length == 0)
 				{
-					for (var m = 0; m < bidakMacanAktif().length; m++)
+					for (var m = 0; m < bidakMacanAktif(bid).length; m++)
 					{
-						jumlahLangkah += hitungLangkahBidak(bidakMacanAktif()[m]);
+						jumlahLangkah += hitungLangkahBidak(bidakMacanAktif(bid)[m]);
 					}
 				}
 				else
@@ -250,14 +263,15 @@ package
 			}
 			else
 			{
-				for (var a = 0; a < bidakAnakAktif().length; a++)
+				for (var a = 0; a < bidakAnakAktif(bid).length; a++)
 				{
-					jumlahLangkah += hitungLangkahBidak(bidakAnakAktif()[a]);
+					jumlahLangkah += hitungLangkahBidak(bidakAnakAktif(bid)[a]);
 				}
 			}
-			//trace(jumlahLangkah + " ");
 			return jumlahLangkah;
 		}
+		
+		
 	}
 
 }
