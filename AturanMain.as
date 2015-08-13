@@ -1,4 +1,4 @@
-package
+﻿package
 {
 	import flash.events.Event;
 	
@@ -15,16 +15,23 @@ package
 			historiLangkah = KecerdasanBuatan.historiLangkah;
 		}
 		
-		public function setLangkah(b:Bidak, p:Pijakan, bid:Array = null):Boolean
+		public function cekLangkah(b:Bidak, p:Pijakan, bid:Array = null, jmlHistoLangkah:int = -1):Boolean
 		{
-			if (historiLangkah.length % 2 == 1) // jika jumlah langkah ganjil, langkah selanjutnya adalah anak
+			var jumlahHistoLangkah:int = historiLangkah.length;
+			var jmlBidakBelumPijak:int = 0;
+			if (jmlHistoLangkah != -1)
+				jumlahHistoLangkah = jmlHistoLangkah;
+			
+			if (jumlahHistoLangkah % 2 == 1) // jika jumlah langkah ganjil, langkah selanjutnya adalah anak
 			{
 				if (b.tipeBidak != "anak") // jika tipe bidak bukan anak, maka gagal
 					return false;
 				else
 				{
 					// jika bidak anak ada yang belum mendapat pijakan, maka tidak diizinkan
-					if (KecerdasanBuatan.cekBidakBelumPijak(bid).length > 0 && b.getPijakan() != null)
+					jmlBidakBelumPijak = KecerdasanBuatan.cekBidakBelumPijak(bid).length;
+					//if ( jmlBidakBelumPijak > 0 && b.getPijakan() != null)
+					if (jmlBidakBelumPijak > 0 && b.getPijakan() != null)
 						return false;
 				}
 			}
@@ -36,7 +43,9 @@ package
 				else // jika macan, true dan pilihBidak Pijak
 				{
 					// jika bidak macan ada yang belum mendapat pijakan maka tidak diizinkan
-					if (KecerdasanBuatan.cekBidakMacanBelumPijak(bid).length > 0 && b.getPijakan() != null)
+					jmlBidakBelumPijak = KecerdasanBuatan.cekBidakMacanBelumPijak(bid).length;
+					//if (jmlBidakBelumPijak > 0 && b.getPijakan() != null)
+					if (jmlBidakBelumPijak > 0 && b.getPijakan() != null)
 						return false;
 				}
 			}
@@ -44,10 +53,16 @@ package
 			if (pilihKoneksiPijak(b, p))
 			{
 				// selain itu, true dan pilihBidakPijak
-				pilihBidakPijak(b, p);
+				//pilihBidakPijak(b, p);
 				return true;
 			}
 			return false;
+		}
+		
+		public function setLangkah(b:Bidak, p:Pijakan):void {
+			if(cekLangkah(b, p))
+				pilihBidakPijak(b, p);
+			
 		}
 		
 		//function untuk memilih Bidak, mengeset pijakan dan set bidak
@@ -61,7 +76,7 @@ package
 		
 		//function untuk menentukan, apakah pijakan yang dipilih terhubung dengan pijakan awal
 		public function pilihKoneksiPijak(b:Bidak, p:Pijakan):Boolean
-		{			
+		{
 			return KelasMacan.pilihKoneksiPijak(b, p);
 		}
 	}
