@@ -40,6 +40,8 @@
 			nama = tipe + "_" + namaGambar;
 			this.buttonMode = true;
 			addEventListener(Event.ADDED_TO_STAGE, inisialisasi); //saat ditambahkan ke stage
+			
+			textnya.text = namaGambar;
 		}
 		
 		private function inisialisasi(e:Event):void

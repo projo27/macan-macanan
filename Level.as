@@ -56,7 +56,7 @@
 			bidakMenang = "";
 			// constructor code
 			addEventListener(Event.ADDED_TO_STAGE, tambahKeStage);
-			stage.addEventListener(MouseEvent.CLICK, klikObjek);
+			addEventListener(MouseEvent.CLICK, klikObjek);
 			btnHistori.addEventListener(MouseEvent.CLICK, klikHistori);
 			
 			timer = new Timer(3000, 1); // timer menjalankan AI awal
@@ -88,22 +88,24 @@
 		
 		protected function klikObjek(e:MouseEvent):void
 		{
-			if (!KecerdasanBuatan.cekMenang()[0]) { 
-				resetKlikPijakBidak(); 	
+			if(!KecerdasanBuatan.cekMenang()[0])
+			{
+				resetKlikPijakBidak();
 			}
-			else {				
+			else
+			{
 				apaMenang = true;
 				bidakMenang = KecerdasanBuatan.cekMenang()[1];
 				timer.stop();
 				timerClock.stop();
 				timerGC.stop();
-				MovieClip(modalLevel).visible = true;
+				MovieClip(modal).visible = true;
 				stage.removeEventListener(MouseEvent.CLICK, klikObjek);
 				return;
 			}
 			
 			if (e.target.parent.parent as Bidak || e.target as Bidak)
-			{					
+			{
 				try
 				{
 					if (Bidak(e.target.parent.parent).status)
@@ -144,8 +146,9 @@
 							loncat = true;
 					}
 					
-					if (aturan.setLangkah(bidakTerklik, pijakanTerklik))
+					if (aturan.cekLangkah(bidakTerklik, pijakanTerklik))
 					{
+						aturan.setLangkah(bidakTerklik, pijakanTerklik);
 						bidakTerklik.klikSaya();
 						twX = new Tween(bidakTerklik, "x", Regular.easeInOut, bidakTerklik.x, pijakanTerklik.x, 10);
 						twY = new Tween(bidakTerklik, "y", Regular.easeInOut, bidakTerklik.y, pijakanTerklik.y, 10);
@@ -156,7 +159,8 @@
 						{
 							twY.addEventListener(TweenEvent.MOTION_FINISH, mulaiJalankanAI); // jika tidak loncat langsung jalankan AI
 							MovieClip(kotakWaktu).gotoAndPlay(1);
-						}						
+						}
+						KecerdasanBuatan.setHistoriLangkah(bidakTerklik, pijakanTerklik); //simpan langkah
 					}
 					
 					if (loncat) // jika loncat, pindahkan bidak terlebih dahulu
@@ -164,9 +168,7 @@
 						twX.addEventListener(TweenEvent.MOTION_FINISH, pindahBidak);
 						MovieClip(kotakWaktu).gotoAndPlay(1); // memberi efek ganti warna pada jam
 					}
-					
-					KecerdasanBuatan.setHistoriLangkah(bidakTerklik, pijakanTerklik); //simpan langkah
-					bidakTerklik = null;					
+					bidakTerklik = null;
 					
 				}
 			}
@@ -184,6 +186,7 @@
 				arrBidakTerloncati[bt].setDisable();
 				KelasMacan.hapusBidakAktif(arrBidakTerloncati[bt]);
 				arrBidakTerloncati[bt].getPijakanSebelum().setBidak(null);
+				KelasMacan.sleep(100);
 			}
 			
 			timer = new Timer(800, 1);
@@ -223,12 +226,14 @@
 					bidakTerakhir = bidak[a];
 			}
 			//trace(bidakTerakhir.getNama()+" "+bidakTerakhir.x+" "+bidakTerakhir.y);
-			if (bidakTerakhir != null)
+			if (bidakTerakhir != null) {
+				trace(bidakTerakhir.getNama()+" "+bidakTerakhir.x+" "+bidakTerakhir.y);
 				korX = bidakTerakhir.x + 45;
+			}
 			
 			var twX:Tween = new Tween(b, "x", Regular.easeInOut, b.x, korX, 20);
 			var twY:Tween = new Tween(b, "y", Regular.easeInOut, b.y, korY, 20);
-			KelasMacan.sleep(200);
+			
 			b.x = korX;
 			b.y = korY;
 		}
@@ -249,34 +254,52 @@
 		//saat tambah ke stage
 		protected function tambahKeStage(e:Event):void
 		{
+			removeEventListener(Event.ADDED_TO_STAGE, tambahKeStage);
 			buatTempatPijak();
 			buatHubunganPijak();
 			buatJalur();
 			buatBidak();
 			resetBeberapaMovie();
+			
+			salinPijakBidakKeTemporari();
+		}
+		
+		private function salinPijakBidakKeTemporari():void 
+		{
+			KecerdasanBuatan.tempPijakan = pijakan;
+			KecerdasanBuatan.tempBidakPasif = bidakPasif;
 		}
 		
 		protected function awalJalankanAI(e:TimerEvent):void
 		{
-			if (KecerdasanBuatan.getPlayerMacan() == "AI") jalankanAI();
+			if (KecerdasanBuatan.getPlayerMacan() == "AI")
+				jalankanAI();
 		}
 		
 		protected function mulaiJalankanAI(e:Event):void
 		{
+			// jika langkah langkah selanjutnya ganjil, dan player MACAN = "AI"
 			if (KecerdasanBuatan.historiLangkah.length % 2 == 0 && KecerdasanBuatan.getPlayerMacan() == "AI")
 				jalankanAI();
 			else if (KecerdasanBuatan.historiLangkah.length % 2 == 1 && KecerdasanBuatan.getPlayerAnak() == "AI")
 				jalankanAI();
+				
+			//selain di atas, maka bidak macan dan manusia dijalankan oleh PLAYER
 		}
 		
 		protected function jalankanAI(e:TweenEvent = null):void
 		{
-			if (KecerdasanBuatan.cekMenang()[0]) { klikObjek(null);  return; } // jika sudah ada pemenang, stop
+			if (KecerdasanBuatan.cekMenang()[0])
+			{
+				klikObjek(null);
+				return;
+			} // jika sudah ada pemenang, stop
 			
 			try
 			{
 				KecerdasanBuatan.mariMainkan();
 				var arr:Array = KecerdasanBuatan.sedangJalan;
+				
 				var bidak:Bidak = arr[0];
 				var pijakan:Pijakan = arr[1];
 				
@@ -306,9 +329,11 @@
 			}
 			catch (er:Error)
 			{
-				timer = new Timer(200, 1);
-				timer.addEventListener(TimerEvent.TIMER_COMPLETE, mulaiJalankanAI);
-				timer.start();
+				//trace("gundul");
+				trace(er.message);
+				//timer = new Timer(200, 1);
+				//timer.addEventListener(TimerEvent.TIMER_COMPLETE, mulaiJalankanAI);
+				//timer.start();
 			}
 		}
 		
@@ -316,7 +341,7 @@
 		{
 			MovieClip(kotakChat).visible = false;
 			MovieClip(kotakHistoris).visible = false;
-			MovieClip(modalLevel).visible = false;
+			MovieClip(modal).visible = false;
 		}
 		
 		protected function buatTempatPijak():void
@@ -399,7 +424,7 @@
 		protected function buatBidak():void
 		{
 			//ini untuk membuat bidak manusia
-			for (var a = 1; a <= 12; a++)
+			for (var a = 1; a <= KelasMacan.JUMLAH_BIDAK_ANAK; a++)
 			{
 				var bidA:Bidak = new Bidak("anak", KelasMacan.lpad(a, 2));
 				bidA.x = 175 + (a * 45);
@@ -409,7 +434,7 @@
 			}
 			
 			//ini untuk membuat bidak macan
-			for (var b = 1; b <= 2; b++)
+			for (var b = 1; b <= KelasMacan.JUMLAH_BIDAK_MACAN; b++)
 			{
 				var bid:Bidak = new Bidak("macan", KelasMacan.lpad(b, 2));
 				bid.x = 65 + (b * 45);
@@ -499,7 +524,7 @@
 			}
 		}
 		
-		protected function cariPijakanByNama(s:String):Pijakan
+		/*protected function cariPijakanByNama(s:String):Pijakan
 		{
 			for (var i = 0; i < pijakan.length; i++)
 			{
@@ -510,7 +535,7 @@
 				}
 			}
 			return null;
-		}
+		}*/
 		
 		private function klikHistori(e:MouseEvent):void
 		{

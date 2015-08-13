@@ -1,4 +1,4 @@
-package
+﻿package
 {
 	import flash.events.Event;
 	import flash.utils.getTimer;
@@ -11,6 +11,8 @@ package
 	{
 		
 		static const FOLDER_BIDAK:String = "gambar/bidak/";
+		public static const JUMLAH_BIDAK_ANAK:int = 10;
+		public static const JUMLAH_BIDAK_MACAN:int = 2;
 		public static var waktunya:String = "";
 		
 		public function KelasMacan()
@@ -81,7 +83,7 @@ package
 			jam = (s / 3600) >= 1 ? Math.floor(s / 3600) : 0;
 			menit = (s / 60) >= 1 ? Math.floor(s / 60) : 0;
 			detik = (s % 60);
-			return lpad(jam, 2) + ":" + lpad(menit, 2) + ":" + lpad(detik, 2);
+			return lpad(jam%24, 2) + ":" + lpad(menit%60, 2) + ":" + lpad(detik, 2);
 		}
 		
 		public static function sleep(ms:int):void
@@ -120,7 +122,7 @@ package
 		public static function cekLoncatanMacan(b:Bidak, p:Pijakan):Boolean
 		{
 			if (bidakTerloncatiMacan(b.getPijakan(), p).length == 2 && b.tipeBidak == "macan")
-				return true;			
+				return true;
 			else
 				return false;
 		}
@@ -154,23 +156,35 @@ package
 			}
 		}
 		
-		public static function jumlahKoneksiValid(b:Bidak):int
+		public static function jumlahKoneksiValid(b:Bidak, pij:Array = null):int
 		{
-			var jml:int = KelasMacan.koneksiValid(b).length;
+			var jml:int = KelasMacan.koneksiValid(b, pij).length;
 			return jml;
 		}
 		
-		public static function koneksiValid(b:Bidak):Array
+		public static function koneksiValid(b:Bidak, pij:Array = null):Array
 		{
+			var pijakan:Array = KecerdasanBuatan.pijakan;
+			if (pij != null)
+				pijakan = pij;
+			
 			var arr:Array = new Array();
 			if (b.getPijakan() == null)
-				return arr;
-			
-			for (var j = 0; j < b.getPijakan().getTotalKoneksi(); j++)
 			{
-				if (pilihKoneksiPijak(b, b.getPijakan().getSemuaKoneksi()[j]) == true)
-					arr.push(b.getPijakan().getSemuaKoneksi()[j]);
-				
+				for (var p = 0; p < pijakan.length; p++)
+				{
+					if (pijakan[p].getBidak() == null)
+						arr.push(pijakan[p]);
+				}
+				return pijakan;
+			}
+			else
+			{
+				for (var j = 0; j < b.getPijakan().getTotalKoneksi(); j++)
+				{
+					if (pilihKoneksiPijak(b, b.getPijakan().getSemuaKoneksi()[j]) == true)
+						arr.push(b.getPijakan().getSemuaKoneksi()[j]);
+				}
 			}
 			return arr;
 		}
@@ -225,13 +239,16 @@ package
 			if (bidA != null)
 			{
 				bidakAktif = bidA;
+			}
+			if (bidP != null)
+			{
 				bidakPasif = bidP;
 			}
 			for (var i = 0; i < bidakAktif.length; i++)
 			{
 				if (bidakAktif[i] == b)
 				{
-					bidakAktif.splice([i], 1);
+					bidakAktif.splice(i, 1);
 					bidakPasif.push(b);
 				}
 			}
@@ -252,6 +269,66 @@ package
 			
 			return perpijakan;
 		}
+		
+		// mengubah kumpulan bidak aktif, pijakan dan bidak pasif menjadi node, [0] = BidakAktif [1] = Pijakan [2] = bidakPasif
+		//yang nantinya akan diproses oleh kecerdasan buatan
+		public static function bidakPijakanKeNode(bidakAktif:Array, pijakan:Array, bidakPasif:Array = null):Array
+		{
+			var node:Array = new Array();
+			node.push(bidakAktif);
+			node.push(pijakan);
+			node.push(bidakPasif);
+			
+			return node;
+		}
+		
+		public static function cariBidakByNama(namaBidak:String, bidaks:Array = null):Bidak {
+			var b:Bidak = new Bidak();
+			for (var i = 0; i < bidaks.length; i++) {
+				if (bidaks[i].getNama() == namaBidak)
+					b=bidaks[i];
+				else continue;
+			}
+			return b;
+		}
+	
+	/*public static function bandingPijakan(pijFilter:Pijakan, pijSumber:Array = null):Pijakan {
+	   var pijakan:Array = KecerdasanBuatan.pijakan;
+	   if (pijSumber != null)
+	   pijakan = pijSumber;
+	
+	   for (var p = 0; p < pijakan.length; p++) {
+	   if (bandingPijakan(pijFilter, pijakan[p]))
+	   return pijakan[p] as Pijakan;
+	   }
+	
+	   return new Pijakan();
+	   }
+	
+	   public static function bandingPijakan(pijFilter:Pijakan, pijUtama:Pijakan):Boolean {
+	   if (pijFilter.getNama() == pijUtama.getNama())
+	   return true;
+	   else
+	   return false;
+	 }*/ /*public static function bandingBidak(bidFilter:Bidak, bidSumber:Array = null):Bidak {
+	   var bidak:Array = KecerdasanBuatan.bidakAktif;
+	   if (bidSumber != null)
+	   bidak = bidSumber;
+	   for (var b = 0; b < bidak.length; b++) {
+	   if (bandingBidak(bidFilter, bidak[b] as Bidak))
+	   return bidak[b];
+	   }
+	
+	   //return new Bidak();
+	   }
+	
+	   public static function bandingBidak(bidFilter:Bidak, bidUtama:Bidak):Boolean {
+	   if (bidFilter.getNama() == bidUtama.getNama())
+	   return true;
+	   else
+	   return false;
+	   }
+	 */
 	}
 
 }
