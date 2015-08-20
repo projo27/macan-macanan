@@ -12,7 +12,7 @@ package
 	 * ...
 	 * @author Nafi Projo
 	 */
-	public class KotakPlayer extends MovieClip
+	public class KotakBidak extends MovieClip
 	{
 		var jenisPlayer:String;
 		var bgColor:String = "338CCB";
@@ -23,7 +23,7 @@ package
 		public var apaTerpilih:Boolean;
 		var loadGambar:Loader;
 		
-		public function KotakPlayer(jnsPlayer:String = "macan")
+		public function KotakBidak(jnsPlayer:String = "macan")
 		{
 			jenisPlayer = jnsPlayer;
 			
@@ -61,8 +61,7 @@ package
 			//trace(jenisPlayer);
 			if (jenisPlayer == "macan")
 			{
-				gantiWarna(bgColor, bgColorToggle, false);
-				
+				gantiWarna(bgColor, bgColorToggle, false);				
 			}
 			else
 			{

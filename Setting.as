@@ -30,7 +30,7 @@ package
 		{
 			for (var i:int = this.numChildren - 1; i >= 0; i--)
 			{
-				trace(i + " " + this.getChildAt(i).name);
+				//trace(i + " " + this.getChildAt(i).name);
 				var btn:SimpleButton = SimpleButton(this.getChildAt(i));
 				btn.x = 20;
 				btn.y = 20;

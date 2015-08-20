@@ -33,7 +33,7 @@
 			pijakan = null;
 			pijakanSebelum = null;
 			terklik = false;
-			gambar = KelasMacan.getFolderBidak() + tipe + "_" + namaGambar + ".png";
+			gambar = KelasMacan.FOLDER_BIDAK + tipe + "_" + namaGambar + ".png";
 			tipeBidak = tipe;
 			status = true;
 			

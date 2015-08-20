@@ -12,6 +12,7 @@ package
 		public static const SOUND = "sound";
 		public static const MUSIC = "music";
 		public static const QUIT = "quit";
+		public static const WIN = "win";
 		
 		public function SettingEvent(type:String, setting:String) 
 		{

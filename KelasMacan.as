@@ -10,10 +10,14 @@
 	public class KelasMacan
 	{
 		
-		static const FOLDER_BIDAK:String = "gambar/bidak/";
+		public static const FOLDER_BIDAK:String = "gambar/bidak/";
 		public static const JUMLAH_BIDAK_ANAK:int = 10;
-		public static const JUMLAH_BIDAK_MACAN:int = 2;
+		public static const JUMLAH_BIDAK_MACAN:int = 2;		
+		public static const MAX_LEVEL_PERMAINAN:int = 6;
+		
 		public static var waktunya:String = "";
+		public static var SOUND:Boolean = true;
+		public static var MUSIC:Boolean = true;
 		
 		public function KelasMacan()
 		{

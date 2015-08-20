@@ -29,8 +29,6 @@
 		public var prediksiBidakPasif:Array;
 		public var prediksiJalan:Array;
 		
-		public static const MAX_LEVEL_PERMAINAN:int = 6;
-		
 		public function KecerdasanBuatan()
 		{
 			//historiLangkah = new Array();
@@ -48,7 +46,7 @@
 			pijakan = new Array();
 			langkahKe = historiLangkah.length;
 			sedangJalan = new Array(); // [0] = Bidak, [1] = Pijakan
-			levelPermainan = lvlPermainan;
+			setLevelPermainan(lvlPermainan); // set level permainan, jika ter-set
 			
 			arrayMenang = new Array(false, ""); // [0] = menang (true, false), [1] = Macan / Anak
 			
@@ -65,10 +63,15 @@
 		
 		public static function setLevelPermainan(lev:int = 1):void
 		{
-			if (lev > MAX_LEVEL_PERMAINAN)
-				levelPermainan = MAX_LEVEL_PERMAINAN;
+			if (lev > KelasMacan.MAX_LEVEL_PERMAINAN)
+				levelPermainan = KelasMacan.MAX_LEVEL_PERMAINAN;
 			else
 				levelPermainan = lev;
+		}
+		
+		public static function setPlayer(player1:String = "AI", player2:String = "PLAYER") {
+			KecerdasanBuatan.thePlayer[0] = player1;
+			KecerdasanBuatan.thePlayer[2] = player2;
 		}
 		
 		public static function setHistoriLangkah(b:Bidak, p:Pijakan):void
@@ -270,6 +273,7 @@
 			var arrayMenang:Array = KecerdasanBuatan.arrayMenang;
 			if (bid == null)
 			{
+				bid = KecerdasanBuatan.bidakAktif;
 				arrayMenang.pop();
 				arrayMenang.pop();
 			}
