@@ -71,12 +71,13 @@
 		
 		public static function setPlayer(player1:String = "AI", player2:String = "PLAYER") {
 			KecerdasanBuatan.thePlayer[0] = player1;
-			KecerdasanBuatan.thePlayer[2] = player2;
+			KecerdasanBuatan.thePlayer[1] = player2;
 		}
 		
 		public static function setHistoriLangkah(b:Bidak, p:Pijakan):void
 		{
-			historiLangkah.push(new Array((historiLangkah.length + 1), new Date().getTime(), KelasMacan.waktunya, p, b));
+			langkahKe++;
+			historiLangkah.push(new Array(langkahKe, new Date().getTime(), KelasMacan.waktunya, p, b));
 			//trace((historiLangkah.length) + " | " + KelasMacan.waktunya + " | " + p.getNama() + " | " + b.getNama());
 		}
 		
@@ -338,7 +339,7 @@
 			return jumlahLangkah;
 		}
 		
-		public function MiniMax(node:Array, kedalaman:int, maxPlayer:Boolean)
+		public function MiniMax(node:Array, kedalaman:int, maxPlayer:Boolean):Number
 		{
 			var dalam:int = kedalaman;
 			var jenisBidak:String = "macan";
@@ -461,20 +462,20 @@
 	/*
 	 *
 	   function minimax(node, depth, maximizingPlayer)
-	   if depth = 0 or node is a terminal node
-	   return the heuristic value of node
-	   if maximizingPlayer
-	   bestValue := -∞
-	   for each child of node
-	   val := minimax(child, depth - 1, FALSE)
-	   bestValue := max(bestValue, val)
-	   return bestValue
-	   else
-	   bestValue := +∞
-	   for each child of node
-	   val := minimax(child, depth - 1, TRUE)
-	   bestValue := min(bestValue, val)
-	   return bestValue
+		if depth = 0 or node is a terminal node
+			return the heuristic value of node
+		if maximizingPlayer
+			bestValue := -∞
+			for each child of node
+				val := minimax(child, depth - 1, FALSE)
+				bestValue := max(bestValue, val)
+				return bestValue
+		else
+			bestValue := +∞
+			for each child of node
+				val := minimax(child, depth - 1, TRUE)
+				bestValue := min(bestValue, val)
+				return bestValue
 	
 	   (* Initial call for maximizing player *)
 	   minimax(origin, depth, TRUE)
