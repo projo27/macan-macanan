@@ -20,7 +20,7 @@
 		public static const JUMLAH_BIDAK_MACAN:int = 2;
 		public static const MAX_LEVEL_PERMAINAN:int = 3;
 		
-		public static var thePlayer:Array = new Array("AI", "PLAYER"); // SET "PLAYER" ATAU "AI" [0] = MACAN, [1] = ANAK
+		public static var thePlayer:Array = new Array("AI", "AI"); // SET "PLAYER" ATAU "AI" [0] = MACAN, [1] = ANAK
 		public static var levelPermainan:int = 2; // SET "PLAYER" ATAU "AI" [0] = MACAN, [1] = ANAK
 		
 		public static const BOBOT_MACAN:int = 5;
@@ -33,8 +33,6 @@
 		
 		public static var langkahKe:int = 1;
 		public static var historiLangkah:Array = new Array();
-		
-		public static var sukampret:String = "";
 		
 		private var arrBaru:Array = new Array();
 		
@@ -205,10 +203,23 @@
 			return lpad(jam % 24, 2) + ":" + lpad(menit % 60, 2) + ":" + lpad(detik, 2);
 		}
 		
+		public static function setLevelPermainan(lev:int = 1):void
+		{
+			if (lev > KelasMacan.MAX_LEVEL_PERMAINAN)
+				levelPermainan = KelasMacan.MAX_LEVEL_PERMAINAN;
+			else
+				levelPermainan = lev;
+		}
+		
+		public static function setPlayer(player1:String = "AI", player2:String = "PLAYER") {
+			KelasMacan.thePlayer[0] = player1;
+			KelasMacan.thePlayer[1] = player2;
+		}
+		
 		public function setHistoriLangkah(b:Bidak, p:Pijakan):void
 		{
-			langkahKe++;
 			historiLangkah.push(new Array(langkahKe, new Date().getTime(), KelasMacan.waktunya, p, b));
+			langkahKe++;
 			//trace((historiLangkah.length) + " | " + KelasMacan.waktunya + " | " + p.getNama() + " | " + b.getNama());
 		}
 		

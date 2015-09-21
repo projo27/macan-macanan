@@ -7,7 +7,7 @@
 	 */
 	public class KecerdasanBuatan
 	{
-		public var sedangJalan:Array; // array (bidak, pijakan)
+		public static var sedangJalan:Array; // array (bidak, pijakan)
 		private static var tempJalan:Array;
 		var kelasMacan:KelasMacan;
 		var aturan:AturanMain;
@@ -31,7 +31,7 @@
 			if (langkahKe % 2 == 0 && KelasMacan.thePlayer[1] == "AI")
 				arrJalan = mainkanAnak(bidakHidup, pijakans, langkahKe);
 			
-			sedangJalan = new Array(arrJalan[0],arrJalan[1]);
+			sedangJalan = new Array(arrJalan[0], arrJalan[1]);
 		
 		}
 		
@@ -41,26 +41,21 @@
 			var p:Pijakan = new Pijakan();
 			var melangkah:Array = new Array();
 			var skor:Number;
-			var jml:int = 0;
+			var jml:int = 0;			
+			var lvl:int = KelasMacan.levelPermainan - 1;
 			
-			/*jml = kelasMacan.bidakBelumPijak("anak", bidakHidup).length;
-			if (jml > 0)
+			if (lvl == 0)
 			{
-				b = kelasMacan.bidakBelumPijak("anak", bidakHidup)[KelasMacan.randomAntara(0, (jml - 1))];
-				jml = kelasMacan.jmlPijakanBelumBerbidak(pijakans);
-				p = kelasMacan.pijakanBelumBerBidak(pijakans)[KelasMacan.randomAntara(0, (jml - 1))];
+				var lev0:Array = level0(bidakHidup, pijakans, 0, false);
+				b = lev0[1];
+				p = lev0[2];
 			}
 			else
 			{
-				jml = kelasMacan.bidakHidupByTipe("anak", bidakHidup).length;
-				b = kelasMacan.bidakHidupByTipe("anak", bidakHidup)[KelasMacan.randomAntara(0, (jml - 1))];
-				jml = kelasMacan.jmlPijakanBelumBerbidak(pijakans);
-				p = kelasMacan.pijakanBelumBerBidak(pijakans)[KelasMacan.randomAntara(0, (jml - 1))];
-			}*/
-			
-			var minmax:Array = MiniMax(bidakHidup, pijakans, KelasMacan.levelPermainan, false);
-			b = kelasMacan.cariBidakByNama(minmax[1].getNama(), bidakHidup);
-			p = kelasMacan.cariPijakanByNama(minmax[2].getNama(), pijakans);
+				var minmax:Array = MiniMax(bidakHidup, pijakans, lvl, false);
+				b = kelasMacan.cariBidakByNama(minmax[1].getNama(), bidakHidup);
+				p = kelasMacan.cariPijakanByNama(minmax[2].getNama(), pijakans);
+			}
 			
 			melangkah.push(b);
 			melangkah.push(p);
@@ -76,21 +71,17 @@
 			var kbut:KecerdasanBuatan = new KecerdasanBuatan();
 			var skor:Number;
 			var jml:int;
+			var lvl:int = KelasMacan.levelPermainan - 1;
 			
-			if (langkahSelanjutnya == 1)
+			if (lvl == 0)
 			{
-				b = kelasMacan.bidakBelumPijak("macan", bidakHidup)[0];
-				p = kelasMacan.pijakanBelumBerBidak(pijakans)[KelasMacan.randomAntara(0, kelasMacan.jmlPijakanBelumBerbidak(pijakans) - 1)];
-			}
-			else if (langkahSelanjutnya == 3)
-			{
-				//trace(kelasMacan.bidakBelumPijak("macan", bidakHidup));
-				b = kelasMacan.bidakBelumPijak("macan", bidakHidup)[0];
-				p = kelasMacan.pijakanBelumBerBidak(pijakans)[KelasMacan.randomAntara(0, kelasMacan.jmlPijakanBelumBerbidak(pijakans) - 1)];
+				var lev0:Array = level0(bidakHidup, pijakans, 0, true);
+				b = lev0[1];
+				p = lev0[2];
 			}
 			else
 			{
-				var minmax:Array = MiniMax(bidakHidup, pijakans, KelasMacan.levelPermainan, true);
+				var minmax:Array = MiniMax(bidakHidup, pijakans, lvl, true);
 				b = kelasMacan.cariBidakByNama(minmax[1].getNama(), bidakHidup);
 				p = kelasMacan.cariPijakanByNama(minmax[2].getNama(), pijakans);
 			}
@@ -177,7 +168,7 @@
 								bidPilih = kelasMacan.copyBidak(bids[0]);
 								pijPilih = kelasMacan.copyPijakan(pijs[p]);
 								skorTerbaik = skor;
-							}							
+							}
 						}
 						aturan.setLangkah(bids[0], bids[0].getPijakanSebelum(), langkahKe, bidaks);
 					}
@@ -198,8 +189,10 @@
 								jmlPijBidakSebelum = kelasMacan.jmlPijakanBerbidak(pijakans, "anak");
 								bidTerloncati = kelasMacan.bidakTerloncatiMacan(bids[b].getPijakan(), pijs[p]);
 								pijTerloncati = new Array();
-								if (bidTerloncati.length == 2) {
-									for (var x = 0; x < bidTerloncati.length; x ++) {
+								if (bidTerloncati.length == 2)
+								{
+									for (var x = 0; x < bidTerloncati.length; x++)
+									{
 										pijTerloncati.push(bidTerloncati[x].getPijakan());
 										bidTerloncati[x].setDisableTemp();
 										pijTerloncati[x].setBidak(null);
@@ -212,27 +205,32 @@
 								jmlSelisihPijBid = ((jmlPijBidakSebelum - jmlPijBidakSesudah) == 2) ? 2 : 0;
 								
 								skor = MiniMax(bidaks, pijakans, (kedalaman - 1), false, jmlSelisihPijBid)[0];
-								if (skor > skorTerbaik){
+								if (skor > skorTerbaik)
+								{
 									bidPilih = kelasMacan.copyBidak(bids[b]);
 									pijPilih = kelasMacan.copyPijakan(pijs[p]);
 									skorTerbaik = skor;
 								}
 								// kembalikan kondisi papan seperti semula							
-								if (bidTerloncati.length == 2) {
-									for (x = 0; x < bidTerloncati.length; x++) {
+								if (bidTerloncati.length == 2)
+								{
+									for (x = 0; x < bidTerloncati.length; x++)
+									{
 										bidTerloncati[x].setEnable(pijTerloncati[x]);
 										pijTerloncati[x].setBidak(bidTerloncati[x]);
 									}
 								}
-								aturan.setLangkah(bids[b], pijSebelum, langkahKe, bidaks);	
+								aturan.setLangkah(bids[b], pijSebelum, langkahKe, bidaks);
 							}
 						}
 						else
 						{
-							if (aturan.cekLangkah(bids[b], pijs[p], langkahKe, bidaks)) {
-								aturan.setLangkah(bids[b], pijs[p], langkahKe, bidaks);						
+							if (aturan.cekLangkah(bids[b], pijs[p], langkahKe, bidaks))
+							{
+								aturan.setLangkah(bids[b], pijs[p], langkahKe, bidaks);
 								skor = MiniMax(bidaks, pijakans, (kedalaman - 1), true)[0];
-								if (skor < skorTerbaik){
+								if (skor < skorTerbaik)
+								{
 									bidPilih = kelasMacan.copyBidak(bids[b]);
 									pijPilih = kelasMacan.copyPijakan(pijs[p]);
 									skorTerbaik = skor;
@@ -242,10 +240,7 @@
 						}
 					}
 				}
-				
-				//kelasMacan.printPosisiBidak(bidaks);
 			}
-			trace(bidPilih.getNama() + " " + pijPilih.getNama());
 			return new Array(skorTerbaik, bidPilih, pijPilih);
 		}
 		
@@ -308,11 +303,6 @@
 				}
 			}
 			
-			for (i = 0; i < retArr.length; i++)
-			{
-				trace(retArr[i][3].getNama() + " " + retArr[i][2].getNama());
-			}
-			
 			return retArr;
 		}
 		
@@ -326,11 +316,6 @@
 			var nilaiTotal:Number;
 			var nilaiBidTerloncati:Number = jmlBidTerloncati;
 			
-			/*
-			 * z = x(a+2b)+x(c+2d)
-			 * z = x((a+2b) + (c+2d))
-			 * z = x((a+c+(2(b+d));
-			 * */
 			if (menang)
 			{
 				if (tipeBidak == "macan")
@@ -342,20 +327,67 @@
 			}
 			else
 			{
-				//trace(bidMacans[2]);
-				//trace(bidAnaks[2]);
 				nilaiMacan = KelasMacan.BOBOT_MACAN * (bidMacans[2] + (KelasMacan.BOBOT_LONCATAN * bidMacans[3])) + nilaiBidTerloncati * 100;
 				nilaiAnak = KelasMacan.BOBOT_ANAK * (bidAnaks[2] + (KelasMacan.BOBOT_LONCATAN * bidAnaks[3]));
 				nilaiTotal = nilaiMacan - nilaiAnak;
 			}
-			
-			//trace(KecerdasanBuatan.langkahKe);
-			trace("---------");			
-			trace(bidMacans[0] + ", " + bidMacans[1] + ", " + bidMacans[2] + ", " + bidMacans[3] + ", " + nilaiMacan+" bobot : "+KelasMacan.BOBOT_LONCATAN);
-			trace(bidAnaks[0] + ", " + bidAnaks[1] + ", " + bidAnaks[2] + ", " + bidAnaks[3] + ", " + nilaiAnak);
-			
-			//trace(nilaiTotal);
+			/*
+			   trace(bidMacans[0] + ", " + bidMacans[1] + ", " + bidMacans[2] + ", " + bidMacans[3] + ", " + nilaiMacan+" bobot : "+KelasMacan.BOBOT_LONCATAN);
+			   trace(bidAnaks[0] + ", " + bidAnaks[1] + ", " + bidAnaks[2] + ", " + bidAnaks[3] + ", " + nilaiAnak);
+			 */
 			return nilaiTotal;
+		}
+		
+		protected function level0(bidaks:Array, pijakans:Array, kedalaman:int, maxPlayer:Boolean = true):Array
+		{
+			var bids:Array;
+			var bidsBaru:Array;
+			var pijs:Array
+			var tipeBidak:String;
+			var bidPilih:Bidak;
+			var pijPilih:Pijakan;
+			
+			if (maxPlayer)
+				tipeBidak = "macan";
+			else
+				tipeBidak = "anak";
+			
+			if (kelasMacan.cekBidakBelumPijak(tipeBidak, bidaks))
+			{
+				bids = kelasMacan.bidakBelumPijak(tipeBidak, bidaks);
+				pijs = kelasMacan.pijakanBelumBerBidak(pijakans);
+				bidPilih = bids[0];
+				pijPilih = pijs[KelasMacan.randomAntara(0, (kelasMacan.jmlPijakanBelumBerbidak(pijakans) - 1))];
+			}
+			else
+			{
+				bidsBaru = new Array();
+				bids = kelasMacan.bidakHidupByTipe(tipeBidak, bidaks);
+				for (var b = 0; b < bids.length; b++) {
+					if (kelasMacan.jmlKoneksiValid(bids[b].getPijakan()) > 0) {
+						bidsBaru.push(bids[b]);
+					}
+					else continue;
+				}
+				bidPilih = bidsBaru[KelasMacan.randomAntara(0, (bidsBaru.length - 1))];
+				pijs = kelasMacan.koneksiValid(bidPilih.getPijakan());
+				pijPilih = pijs[KelasMacan.randomAntara(0, (pijs.length - 1))];
+			}
+			
+			return new Array(10, bidPilih, pijPilih);
+		}
+		
+		public static function resetKecerdasanBuatan(lvlPermainan:int = 2):void
+		{
+			
+			KelasMacan.historiLangkah = new Array();
+			Main.bidaks = new Array();
+			Main.pijakans = new Array();
+			KelasMacan.langkahKe = 1;
+			sedangJalan = new Array(); // [0] = Bidak, [1] = Pijakan
+			KelasMacan.setLevelPermainan(lvlPermainan); // set level permainan, jika ter-set
+			
+			Main.menang = new Array(false, ""); // [0] = menang (true, false), [1] = Macan / Anak
 		}
 	}
 }

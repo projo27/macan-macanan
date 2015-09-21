@@ -30,6 +30,7 @@
 			SimpleButton(tombolStart).mouseEnabled = false;
 			
 			addEventListener(Event.ADDED_TO_STAGE, tambahKeStage);
+			KelasMacan.setPlayer("AI", "AI");
 		}
 		
 		private function tambahKeStage(e:Event):void
@@ -86,9 +87,9 @@
 			else
 				tipeB = "AI";
 			
-			KecerdasanBuatan.setPlayer(KecerdasanBuatan.thePlayer[0], tipeB);
+			KelasMacan.setPlayer(KelasMacan.thePlayer[0], tipeB);
 			
-			if (KecerdasanBuatan.thePlayer[0] == "PLAYER" || KecerdasanBuatan.thePlayer[1] == "PLAYER")
+			if (KelasMacan.thePlayer[0] == "PLAYER" || KelasMacan.thePlayer[1] == "PLAYER")
 				enableTombolStart(true);		
 			else
 				enableTombolStart(false);
@@ -104,9 +105,9 @@
 			else
 				tipeB = "AI";
 			
-			KecerdasanBuatan.setPlayer(tipeB, KecerdasanBuatan.thePlayer[1]);
+			KelasMacan.setPlayer(tipeB, KelasMacan.thePlayer[1]);
 			
-			if(KecerdasanBuatan.thePlayer[0] == "PLAYER" || KecerdasanBuatan.thePlayer[1] == "PLAYER")
+			if(KelasMacan.thePlayer[0] == "PLAYER" || KelasMacan.thePlayer[1] == "PLAYER")
 				enableTombolStart(true);
 			else
 				enableTombolStart(false);

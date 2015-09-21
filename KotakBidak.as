@@ -75,7 +75,7 @@
 			}
 			textnya.text = jenisPlayer.toUpperCase();
 			textnya2.text = jenisPlayer.toUpperCase();
-			gambar = KelasMacan.getFolderBidak() + "PLAYER_" + jenisPlayer.toUpperCase() + ".jpg";
+			gambar = KelasMacan.FOLDER_BIDAK + "PLAYER_" + jenisPlayer.toUpperCase() + ".jpg";
 			(MovieClip(kotakBg)).transform.colorTransform = ctWarna;
 
 			loadGambar.load(new URLRequest(gambar));
