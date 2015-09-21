@@ -12,6 +12,9 @@
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
+	import flash.media.Sound;
+	import flash.net.URLLoader;
+	import flash.net.URLRequest;
 	import flash.system.System;
 	import flash.text.TextField;
 	import flash.utils.getDefinitionByName;
@@ -44,6 +47,10 @@
 		var twX:Tween;
 		var twY:Tween;
 		
+		var suaraMacan:Array;
+		var suaraAnak:Array;
+		var sound:Sound;
+		
 		public function Main()
 		{
 			aturan = new AturanMain();
@@ -72,8 +79,27 @@
 			timerClock = new Timer(1000, 1); //timer Waktu
 			timerClock.addEventListener(TimerEvent.TIMER_COMPLETE, tambahDetik);
 			timerClock.start();
+			
 		}
 		
+		private function buatSound():void 
+		{
+			suaraMacan = new Array();
+			suaraAnak = new Array();
+			for (var i = 0; i < 3; i++) {
+				sound = new Sound();
+				sound.load(new URLRequest("sound/macan" + (i + 1) + ".mp3"));
+				suaraMacan.push(sound);
+				//sound.play();
+			}
+			
+			for (var a = 0; a < 4; a++) {
+				sound = new Sound();
+				sound.load(new URLRequest("sound/anak" + (a + 1) + ".mp3"));
+				suaraAnak.push(sound);
+				//sound.play();
+			}
+		}
 		
 		protected function tambahDetik(e:TimerEvent):void
 		{
@@ -104,6 +130,10 @@
 						{
 							Bidak(e.target.parent.parent).klikSaya();
 							bidakTerklik = Bidak(e.target.parent.parent);
+							if (bidakTerklik.tipeBidak == "macan" && KelasMacan.SOUND)
+								suaraMacan[KelasMacan.randomAntara(0, suaraMacan.length)].play();
+							else if (bidakTerklik.tipeBidak == "anak" && KelasMacan.SOUND)
+								suaraAnak[KelasMacan.randomAntara(0, suaraAnak.length)].play();
 						}
 					}
 					catch (err:Error)
@@ -112,6 +142,10 @@
 						{
 							Bidak(e.target).klikSaya();
 							bidakTerklik = Bidak(e.target);
+							if (bidakTerklik.tipeBidak == "macan" && KelasMacan.SOUND)
+								suaraMacan[KelasMacan.randomAntara(0, suaraMacan.length)].play();
+							else if (bidakTerklik.tipeBidak == "anak" && KelasMacan.SOUND)
+								suaraAnak[KelasMacan.randomAntara(0, suaraAnak.length)].play();
 						}
 					}
 				}
@@ -153,6 +187,7 @@
 								MovieClip(kotakWaktu).gotoAndPlay(1);
 							}
 							KecerdasanBuatan.setHistoriLangkah(bidakTerklik, pijakanTerklik); //simpan langkah
+							TextField(kotakHistoris.textHistoris).text = (KecerdasanBuatan.langkahKe+" \t: " + bidakTerklik.getNama() + ", " + pijakanTerklik.getNama()+"\n") + kotakHistoris.textHistoris.text;
 						}
 						
 						if (loncat) // jika loncat, pindahkan bidak terlebih dahulu
@@ -161,7 +196,8 @@
 							MovieClip(kotakWaktu).gotoAndPlay(1); // memberi efek ganti warna pada jam
 						}
 						bidakTerklik = null;
-						
+					
+					//KelasMacan.representasiPapan(this.pijakan);		
 					}
 				}
 				else
@@ -279,6 +315,7 @@
 			resetBeberapaMovie();
 			
 			salinPijakBidakKeTemporari();
+			buatSound();
 		}
 		
 		private function salinPijakBidakKeTemporari():void

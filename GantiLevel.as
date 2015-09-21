@@ -1,5 +1,6 @@
-package
+﻿package
 {
+	import fl.transitions.easing.Back;
 	import flash.display.DisplayObject;
 	import flash.display.MovieClip;
 	import flash.display.Shape;
@@ -17,10 +18,11 @@ package
 		var kpManusia:KotakBidak;
 		var kpMacan:KotakBidak;
 		var kotakLevel:MovieClip;
-		var lvlPermainan:int = 1;
+		var lvlPermainan:int;
 		
 		public function GantiLevel()
 		{
+			lvlPermainan = 1;
 			kotakLevel = new MovieClip();
 			kpManusia = new KotakBidak("manusia");
 			kpMacan = new KotakBidak("macan");
@@ -34,7 +36,7 @@ package
 		{
 			kpManusia.x = 515; //240
 			kpManusia.y = 210;
-			parentKotakPlayer.addChild(kpManusia);
+			parentKotakPlayer.addChild(kpManusia);			
 			
 			kpMacan.x = 250; //130
 			kpMacan.y = 210;
@@ -59,35 +61,55 @@ package
 		private function klikBarLevel(e:MouseEvent):void
 		{
 			MovieClip(e.target.parent).gotoAndStop("lev" + e.target.name.substr(10, 1));
-			//trace(e.target.name.substr(e.target.name.length - 1, 1));
 			lvlPermainan = int(e.target.name.substr(e.target.name.length - 1, 1));
 		}
 		
-		private function enableTombolStart():void
+		private function enableTombolStart(enable:Boolean):void
 		{
-			if (kpManusia.apaTerpilih || kpMacan.apaTerpilih)
+			if (enable)
 			{
 				SimpleButton(tombolStart).addEventListener(MouseEvent.CLICK, klikStart);
 				SimpleButton(tombolStart).mouseEnabled = true;
-					//tombolStart.buttonMode = true;
+			}
+			else {
+				SimpleButton(tombolStart).removeEventListener(MouseEvent.CLICK, klikStart);
+				SimpleButton(tombolStart).mouseEnabled = false;
 			}
 		}
 		
 		private function klikManusia(e:MouseEvent):void
 		{
-			kpMacan.pilih(false);
-			kpManusia.pilih(true);
+			kpManusia.pilih();
+			var tipeB:String;
+			if (kpManusia.apaTerpilih)
+				tipeB = "PLAYER";
+			else
+				tipeB = "AI";
 			
-			KecerdasanBuatan.setPlayer("AI", "PLAYER");
-			enableTombolStart();
+			KecerdasanBuatan.setPlayer(KecerdasanBuatan.thePlayer[0], tipeB);
+			
+			if (KecerdasanBuatan.thePlayer[0] == "PLAYER" || KecerdasanBuatan.thePlayer[1] == "PLAYER")
+				enableTombolStart(true);		
+			else
+				enableTombolStart(false);
+			
 		}
 		
 		private function klikMacan(e:MouseEvent):void
 		{
-		/*kpManusia.pilih(false);
-		   kpMacan.pilih(true);
-		   KecerdasanBuatan.thePlayer[0] = "PLAYER";
-		 KecerdasanBuatan.thePlayer[1] = "AI";*/
+			kpMacan.pilih();
+			var tipeB:String;
+			if (kpMacan.apaTerpilih)
+				tipeB = "PLAYER";
+			else
+				tipeB = "AI";
+			
+			KecerdasanBuatan.setPlayer(tipeB, KecerdasanBuatan.thePlayer[1]);
+			
+			if(KecerdasanBuatan.thePlayer[0] == "PLAYER" || KecerdasanBuatan.thePlayer[1] == "PLAYER")
+				enableTombolStart(true);
+			else
+				enableTombolStart(false);
 		}
 	
 	}

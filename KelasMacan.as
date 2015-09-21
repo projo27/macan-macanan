@@ -11,9 +11,14 @@
 	{
 		
 		public static const FOLDER_BIDAK:String = "gambar/bidak/";
+		public static const FOLDER_SOUND:String = "sound/";
 		public static const JUMLAH_BIDAK_ANAK:int = 10;
-		public static const JUMLAH_BIDAK_MACAN:int = 2;		
+		public static const JUMLAH_BIDAK_MACAN:int = 2;
 		public static const MAX_LEVEL_PERMAINAN:int = 6;
+		
+		public static const BOBOT_MACAN:int = 5;
+		public static const BOBOT_ANAK:int = 2;
+		public static const BOBOT_LONCATAN:int = 6;
 		
 		public static var waktunya:String = "";
 		public static var SOUND:Boolean = true;
@@ -87,7 +92,7 @@
 			jam = (s / 3600) >= 1 ? Math.floor(s / 3600) : 0;
 			menit = (s / 60) >= 1 ? Math.floor(s / 60) : 0;
 			detik = (s % 60);
-			return lpad(jam%24, 2) + ":" + lpad(menit%60, 2) + ":" + lpad(detik, 2);
+			return lpad(jam % 24, 2) + ":" + lpad(menit % 60, 2) + ":" + lpad(detik, 2);
 		}
 		
 		public static function sleep(ms:int):void
@@ -119,6 +124,47 @@
 						arr.push(p.getKoneksiLoncat()[x]);
 				}
 			}
+			return arr;
+		}
+		
+		public static function pijakanKoneksi(p:Pijakan, tipeBidak:String = "semua"):Array
+		{
+			var arr:Array = new Array();
+			for (var i = 0; i < p.getJumlahKoneksi(); i++)
+			{
+				if (tipeBidak == "semua")
+				{
+					if (p.getKoneksi()[i].getBidak() == null)
+						arr.push(p.getKoneksi()[i]);
+					
+				}
+				else
+				{
+					if (p.getBidak().tipeBidak == tipeBidak)
+					{
+						if (p.getKoneksi()[i].getBidak() == null)
+							arr.push(p.getKoneksi()[i]);
+					}
+					else
+						continue;
+				}
+			}
+			return arr;
+		}
+		
+		public static function pijakanLoncat(p:Pijakan):Array
+		{
+			var arr:Array = new Array();
+			var bidak:Bidak = p.getBidak();
+			if (bidak != null && bidak.tipeBidak == "macan")
+			{
+				for (var x = 0; x < p.getJumlahKoneksiLoncat(); x++)
+				{
+					if (KelasMacan.cekLoncatanMacan(bidak, p.getKoneksiLoncat()[x]) && p.getKoneksiLoncat()[x].getBidak() == null)
+						arr.push(p.getKoneksiLoncat()[x]);
+				}
+			}
+			
 			return arr;
 		}
 		
@@ -286,14 +332,93 @@
 			return node;
 		}
 		
-		public static function cariBidakByNama(namaBidak:String, bidaks:Array = null):Bidak {
+		public static function cariBidakByNama(namaBidak:String, bidaks:Array = null):Bidak
+		{
 			var b:Bidak = new Bidak();
-			for (var i = 0; i < bidaks.length; i++) {
+			for (var i = 0; i < bidaks.length; i++)
+			{
 				if (bidaks[i].getNama() == namaBidak)
-					b=bidaks[i];
-				else continue;
+					b = bidaks[i];
+				else
+					continue;
 			}
 			return b;
+		}
+		
+		/*return array[0] => array ("M", jmlbidakmacan, jmlkoneksi, jmlloncatan);
+		 return array[1] => array ("O", jmlbidakmacan, jmlkoneksi, jmlloncatan);*/
+		public function representasiPapan(pijakans:Array, bidaksPasif:Array = null):Array
+		{
+			//KecerdasanBuatan.pijakan[0].setText("gundul");
+			var sBidMacan:String = "M";
+			var jmlBidMacan:int = 0;
+			var jmlKoneksiMacan:int = 0;
+			var jmlLoncatMacan:int = 0;
+			var sBidAnak:String = "O";
+			var jmlBidAnak:int = 0;
+			var jmlKoneksiAnak:int = 0;
+						
+			if (bidaksPasif.length > 0) {
+				for (var p = 0; p < pijakans.length; p++)
+				{
+					for (var i = 0; i < bidaksPasif.length; i++)
+					{
+						if (pijakans[p].getBidak() == null)
+							continue;
+						if (pijakans[p].getBidak().getNama() == bidaksPasif[i].getNama()) {
+							Pijakan(pijakans[p]).setBidak(null);
+						}
+						else {
+							continue;
+						}
+					}
+				}
+			}
+			
+			for (p = 0; p < pijakans.length; p++)
+			{
+				if (pijakans[p].getBidak() != null)
+				{
+					if (pijakans[p].getBidak().tipeBidak == "macan")
+					{
+						jmlBidMacan++;
+						jmlKoneksiMacan += pijakanKoneksi(pijakans[p], "macan").length;
+						jmlLoncatMacan += pijakanLoncat(pijakans[p]).length;
+					}
+					else
+					{
+						jmlBidAnak++;
+						jmlKoneksiAnak += pijakanKoneksi(pijakans[p], "anak").length;
+					}
+				}
+			}
+			
+			var bidMacans:Array = new Array(sBidMacan, jmlBidMacan, jmlKoneksiMacan, jmlLoncatMacan);
+			var bidAnaks:Array = new Array(sBidAnak, jmlBidAnak, jmlKoneksiAnak, 0);
+			var retArr:Array = new Array();
+			retArr.push(bidMacans);
+			retArr.push(bidAnaks);
+			
+			return retArr;
+		
+		/*trace(KecerdasanBuatan.langkahKe);
+		   trace(sBidMacan+", "+jmlBidMacan+", "+jmlKoneksiMacan+", "+jmlLoncatMacan);
+		   trace(sBidAnak+", "+jmlBidAnak+", "+jmlKoneksiAnak+", 0");
+		 */
+			 //return "y";
+		}
+		
+		public function copyArray(arrayStatic:Array):Array
+		{
+			if (arrayStatic == null)
+				return null;
+			var arrBaru:Array = new Array();
+			
+			for (var i = 0; i < arrayStatic.length; i++)
+			{
+				arrBaru.push(arrayStatic[i]);
+			}
+			return arrBaru;
 		}
 	
 	/*public static function bandingPijakan(pijFilter:Pijakan, pijSumber:Array = null):Pijakan {

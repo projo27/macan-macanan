@@ -161,7 +161,8 @@ package
 		//mengambil total koneksi (pijakan + loncat)
 		public function getTotalKoneksi():int
 		{
-			return koneksiPijakan.length + (koneksiLoncat.length * (2 ^ koneksiLoncat.length + 1));
+			return getSemuaKoneksi().length;
+			//return koneksiPijakan.length + (koneksiLoncat.length * (2 ^ koneksiLoncat.length + 1));
 		}
 		
 		public function getSemuaKoneksi():Array

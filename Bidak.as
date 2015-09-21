@@ -19,7 +19,7 @@
 		var circle:Sprite = new Sprite();
 		var terklik:Boolean;
 		var tipeBidak:String;
-		var status:Boolean;
+		var status:Boolean; //false = mati, true = hidup
 		
 		private var pijakan:Pijakan;
 		private var pijakanSebelum:Pijakan;
@@ -112,7 +112,7 @@
 			addChildAt(circle,0);
 			
 			gDisable.visible = true;
-			status = false;
+			this.status = false;
 			
 			setPijakan(null);
 		}

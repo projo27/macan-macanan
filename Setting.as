@@ -6,7 +6,11 @@ package
 	import flash.display.SimpleButton;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
-	
+	import flash.geom.ColorTransform;
+	import flash.media.Sound;
+	import flash.media.SoundChannel;
+	import flash.media.SoundTransform;
+	import flash.net.URLRequest;
 	/**
 	 * ...
 	 * @author Nafi Projo
@@ -21,9 +25,21 @@ package
 		var twX:Tween;
 		var twY:Tween;
 		
+		public var bgMusic:Sound;
+		public var bgMusicChannel:SoundChannel;
+		var musicPosisi:int;
+		
 		public function Setting(setSound:Boolean = true, setMusic:Boolean = true)
 		{
-			addEventListener(Event.ADDED_TO_STAGE, tambahKeStage);
+			addEventListener(Event.ADDED_TO_STAGE, tambahKeStage);			
+			mainkanMusic();
+		}
+		
+		private function mainkanMusic():void 
+		{			
+			bgMusic = new Sound();
+			bgMusic.load(new URLRequest("sound/bg_music.mp3"));
+			bgMusicChannel = bgMusic.play(0, 9999, new SoundTransform(0.2));
 		}
 		
 		private function tambahKeStage(e:Event):void
@@ -46,10 +62,10 @@ package
 					tampikanSetting();
 					break;
 				case "tombolSound": 
-					trace("sound");
+					setSound();
 					break;
 				case "tombolMusic": 
-					trace("music");
+					setMusic();
 					break;
 				case "tombolAbout": 
 					tampilkanAbout();
@@ -58,7 +74,34 @@ package
 					tampilkanQuit();
 					break;
 			}
-			//trace(e.target.name);
+		}
+		
+		
+		private function setSound():void 
+		{
+			if (KelasMacan.SOUND){
+				KelasMacan.SOUND = false;
+				SimpleButton(tombolSound).alpha = 0.3;
+			}
+			else{
+				KelasMacan.SOUND = true;
+				SimpleButton(tombolSound).alpha = 1;
+			}
+		}
+		private function setMusic():void 
+		{
+			if (KelasMacan.MUSIC) {
+				KelasMacan.MUSIC = false;
+				musicPosisi = bgMusicChannel.position;
+				bgMusicChannel.stop();
+				SimpleButton(tombolMusic).alpha = 0.3;
+			}
+			else {
+				KelasMacan.MUSIC = true;
+				bgMusicChannel = bgMusic.play(musicPosisi, 9999, new SoundTransform(0.2));
+				SimpleButton(tombolMusic).alpha = 1;
+				
+			}
 		}
 		
 		private function tampilkanQuit():void 

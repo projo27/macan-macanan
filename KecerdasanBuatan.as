@@ -12,10 +12,10 @@
 		public static var bidakAktif:Array = new Array();
 		public static var bidakPasif:Array = new Array();
 		public static var pijakan:Array = new Array();
-		public static var langkahKe:int = historiLangkah.length;
+		public static var langkahKe:int;
 		public static var thePlayer:Array = new Array("AI", "PLAYER"); // SET "PLAYER" ATAU "AI" [0] = MACAN, [1] = ANAK
 		public static var sedangJalan:Array = new Array(); // [0] = Bidak, [1] = Pijakan
-		public static var levelPermainan:int = 2;
+		public static var levelPermainan:int = 1;
 		
 		public static var arrayMenang:Array = new Array(false, ""); // [0] = menang (true, false), [1] = Macan / Anak
 		
@@ -29,6 +29,8 @@
 		public var prediksiBidakPasif:Array;
 		public var prediksiJalan:Array;
 		
+		public var kelasMacan:KelasMacan;
+		
 		public function KecerdasanBuatan()
 		{
 			//historiLangkah = new Array();
@@ -36,6 +38,8 @@
 			prediksiBidakAktif = new Array();
 			prediksiBidakPasif = new Array();
 			prediksiJalan = new Array();
+			
+			kelasMacan = new KelasMacan();
 		}
 		
 		public static function resetKecerdasanBuatan(lvlPermainan:int = 2):void {
@@ -179,9 +183,12 @@
 		
 		public static function mariMainkan():void
 		{
+			
+			var kelasMacan:KelasMacan = new KelasMacan();
 			sedangJalan = new Array(null, null);
-			tempBidakAktif = bidakAktif;
-			tempPijakan = pijakan;
+			tempBidakAktif = kelasMacan.copyArray(bidakAktif);
+			tempPijakan = kelasMacan.copyArray(pijakan);
+			//Pijakan(tempPijakan[3]).setBidak(new Bidak());
 			if (historiLangkah.length % 2 == 0 && getPlayerMacan() == "AI") // jika langkah ganjil dan player macan = AI
 				sedangJalan = jalankanMacan(tempBidakAktif, tempPijakan);
 			else if (historiLangkah.length % 2 == 1 && getPlayerAnak() == "AI") // jika langkah genap dan player anak = AI
@@ -219,7 +226,7 @@
 				skor = kbut.MiniMax(KelasMacan.bidakPijakanKeNode(bid, pij), levelPermainan, true);
 				//melangkah = tempSedangJalan;
 				
-				var b:Bidak;
+//				var b:Bidak;
 				for (var i = 0; i < KecerdasanBuatan.bidakAktif.length; i++)
 				{
 					if (bidakAktif[i].getNama() == tempSedangJalan[0].getNama())
@@ -269,12 +276,14 @@
 			return melangkah;
 		}
 		
-		public static function cekMenang(bid:Array = null):Array
+		public static function cekMenang(bid:Array = null, langkahKe:int = -1):Array
 		{
-			var arrayMenang:Array = KecerdasanBuatan.arrayMenang;
+			var arrayMenang:Array;
+			var langkahNo:int;
 			if (bid == null)
 			{
 				bid = KecerdasanBuatan.bidakAktif;
+				var arrayMenang:Array = KecerdasanBuatan.arrayMenang;
 				arrayMenang.pop();
 				arrayMenang.pop();
 			}
@@ -283,7 +292,12 @@
 				arrayMenang = new Array();
 			}
 			
-			if (historiLangkah.length % 2 == 0) // jika langkah ganjil (langkah macan)
+			if (langkahKe == -1)
+				langkahNo = KecerdasanBuatan.langkahKe;
+			else
+				langkahNo = langkahKe;			
+			
+			if (langkahNo % 2 == 1) // jika langkah ganjil (langkah macan)
 			{
 				//trace("false");
 				if (KecerdasanBuatan.totalHitungLangkahBidak("macan", bid) == 0) // jika bidak macan langkah habis (anak menang)
@@ -297,7 +311,7 @@
 					arrayMenang.push("");
 				}
 			}
-			else if (historiLangkah.length % 2 == 1) // jika langkah genap (langkah anak)
+			else if (historiLangkah.length % 2 == 0) // jika langkah genap (langkah anak)
 			{
 				if (bidakAnakAktif(bid).length == 4) // jika bidak Anak yang aktif tersisa 4 (macan menang)
 				{
@@ -339,23 +353,64 @@
 			return jumlahLangkah;
 		}
 		
+		public function Evaluasi(pijakans:Array, langkahKe:int, bidaks:Array = null, bidaksPasif:Array = null):Number {
+			var pijaks:Array = pijakans;
+			var bidMacans:Array = kelasMacan.representasiPapan(pijaks, bidaksPasif)[0];
+			var bidAnaks:Array = kelasMacan.representasiPapan(pijaks, bidaksPasif)[1];
+			var nilaiMacan:Number;
+			var nilaiAnak:Number;
+			var nilaiTotal:Number;
+			
+			/*
+			 * z = x(a+2b)+x(c+2d)
+			 * z = x((a+2b) + (c+2d))
+			 * z = x((a+c+(2(b+d));
+			 * */
+			if (cekMenang(bidaks, langkahKe)[0]) {
+				if (langkahKe % 2 == 1) {
+					nilaiTotal = 100;
+				}
+				else
+					nilaiTotal = -100;
+			}
+			else {
+				
+				nilaiMacan = KelasMacan.BOBOT_MACAN * (bidMacans[2] + (KelasMacan.BOBOT_LONCATAN * bidMacans[3]));
+				nilaiAnak = KelasMacan.BOBOT_ANAK * (bidAnaks[2] + (KelasMacan.BOBOT_LONCATAN * bidAnaks[3]));
+				nilaiTotal = nilaiMacan - nilaiAnak;
+			}			
+			
+			//trace(KecerdasanBuatan.langkahKe);
+			trace(bidMacans[0]+", "+bidMacans[1]+", "+bidMacans[2]+", "+bidMacans[3]+", "+nilaiMacan);
+			trace(bidAnaks[0] + ", " + bidAnaks[1] + ", " + bidAnaks[2] + ", " + bidAnaks[3]+", "+nilaiAnak);
+			
+			trace(nilaiTotal);
+			return nilaiTotal;
+		}		
+		
+		
 		public function MiniMax(node:Array, kedalaman:int, maxPlayer:Boolean):Number
 		{
 			var dalam:int = kedalaman;
 			var jenisBidak:String = "macan";
 			var langkahTerbaik:Number = 0;
+			var langkahKe:Number = 1;
 			var b:Number = 0;
 			var p:Number = 0;
 			var bi:Bidak = new Bidak();
 			var bidaks:Array = new Array();
 			
-			if (!maxPlayer) jenisBidak = "anak";
+			if (!maxPlayer) {
+				jenisBidak = "anak";
+				langkahKe = 2;
+			}
 			
 			//trace("kedalaman " + kedalaman + " bidak " + jenisBidak);
 			if (kedalaman == 0)
 			{
+				return Evaluasi(node[1], langkahKe, node[0], node[2]);
 				//trace("hitung kedalaman " + jenisBidak+ " "+kedalaman + " total langkah : " + totalHitungLangkahBidak(jenisBidak, node[0], node[1]));
-				return totalHitungLangkahBidak(jenisBidak, node[0], node[1]);
+				//return totalHitungLangkahBidak(jenisBidak, node[0], node[1]);
 			}
 			
 			kedalaman--;
@@ -366,18 +421,19 @@
 				
 				bidaks = (cekBidakMacanBelumPijak(node[0]).length == 1) ? cekBidakMacanBelumPijak(node[0]) : bidakMacanAktif(node[0]);
 				//trace(bidaks.length);
+				
+				var kb:KecerdasanBuatan = new KecerdasanBuatan();
+				kb.prediksiBidakAktif = kelasMacan.copyArray(node[0]);
+				kb.prediksiBidakPasif = kelasMacan.copyArray(node[2]);
+						
 				for (b = 0; b < bidaks.length; b++)
 				{
 					//if (hitungLangkahBidak(node[0][b]) != 0 && bi.getPijakan() != null)
 					//{
-					//trace(KelasMacan.jumlahKoneksiValid(bidaks[b], node[1]));
+					trace(KelasMacan.jumlahKoneksiValid(bidaks[b], node[1]));
 					for (p = 0; p < KelasMacan.jumlahKoneksiValid(bidaks[b], node[1]); p++)
-					{
-						var kb:KecerdasanBuatan = new KecerdasanBuatan();
-						kb.prediksiBidakAktif = node[0];
-						kb.prediksiPijakan = node[1];
-						kb.prediksiBidakPasif = node[2];
-						
+					{						
+						kb.prediksiPijakan = kelasMacan.copyArray(node[1]);
 						bi = bidaks[b];
 						//trace(bi.getNama());
 						var aturan:AturanMain = new AturanMain();
@@ -387,25 +443,24 @@
 							continue;
 						}
 						else {
+							trace("macan kedalaman : " + dalam + " " + bi.getNama() + " " + KelasMacan.koneksiValid(bi, kb.prediksiPijakan)[p].getNama());
+							var pijakansebelum:Pijakan = bi.getPijakan();							
+							
+							kb.prediksiBidakPasif = KelasMacan.bidakTerloncatiMacan(bi.getPijakan(), KelasMacan.koneksiValid(bi)[p]);
+							trace("jml bidak terloncati : " + kb.prediksiBidakPasif.length);
+							aturan.setLangkah(bi, KelasMacan.koneksiValid(bi)[p]);
 							var skor:Number = kb.MiniMax(KelasMacan.bidakPijakanKeNode(kb.prediksiBidakAktif, kb.prediksiPijakan, kb.prediksiBidakPasif), kedalaman, false);
-						}
-						//trace(bi.getPijakan().getNama());
-						//if(aturan.pilihKoneksiPijak(bi, KelasMacan.koneksiValid(bi, kb.prediksiPijakan)[p]))
+							aturan.setLangkah(bi, bi.getPijakanSebelum());
+						};
 						
-						//if (langkahTerbaik < skor)
-						//{
-							//tempBidakAktif = kb.prediksiBidakAktif;
-							//tempPijakan = kb.prediksiPijakan;
-							//tempBidakPasif = kb.prediksiBidakPasif;
+						if(langkahTerbaik < skor){							
 							tempSedangJalan.pop();
 							tempSedangJalan.pop();
 							tempSedangJalan.push(bi);
 							tempSedangJalan.push(KelasMacan.koneksiValid(bi, kb.prediksiPijakan)[p]);
-						//}
+						}
 						
-						//bi.setDisable();
 						langkahTerbaik = Math.max(langkahTerbaik, skor);
-						trace("macan kedalaman : " + dalam + " " + bi.getNama() + " " + KelasMacan.koneksiValid(bi, kb.prediksiPijakan)[p].getNama() + " skor " + langkahTerbaik);
 					}
 				}
 				return langkahTerbaik;
@@ -414,15 +469,16 @@
 			{
 				langkahTerbaik = Number.POSITIVE_INFINITY;
 				
-				bidaks = (cekBidakAnakBelumPijak(node[0]).length == 1) ? cekBidakAnakBelumPijak(node[0]) : bidakAnakAktif(node[0]);
-				//trace("tes "+node[0].length);
+				bidaks = (cekBidakAnakBelumPijak(node[0]).length > 0) ? new Array(cekBidakAnakBelumPijak(node[0])[0]) : bidakAnakAktif(node[0]);
+				
+				trace("tes "+bidaks.length);
 				for (b = 0; b < bidaks.length; b++)
 				{
 					//trace(KelasMacan.jumlahKoneksiValid(bidaks[b], node[1]));
 					for (p = 0; p < KelasMacan.jumlahKoneksiValid(bidaks[b], node[1]); p++)
 					{
 						var kb:KecerdasanBuatan = new KecerdasanBuatan();
-						kb.prediksiBidakAktif = node[0];
+						kb.prediksiBidakAktif = bidaks;
 						kb.prediksiPijakan = node[1];
 						kb.prediksiBidakPasif = node[2];
 						bi = bidaks[b];
@@ -435,7 +491,7 @@
 							continue;
 						}
 						else {
-							//aturan.setLangkah(bi, KelasMacan.koneksiValid(bi)[p]);
+							aturan.setLangkah(bi, KelasMacan.koneksiValid(bi)[p]);
 							var skor:Number = kb.MiniMax(KelasMacan.bidakPijakanKeNode(kb.prediksiBidakAktif, kb.prediksiPijakan, kb.prediksiBidakPasif), kedalaman, true);
 						}
 						//if (aturan.pilihKoneksiPijak(bi, KelasMacan.koneksiValid(bi, kb.prediksiPijakan)[p]))
