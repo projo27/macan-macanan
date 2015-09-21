@@ -52,7 +52,7 @@
 			try
 			{
 				removeChild(this.getChildByName("theLevel"));
-				KecerdasanBuatan.resetKecerdasanBuatan(KelasMacan.levelPermainan);
+				KecerdasanBuatan.resetKecerdasanBuatan(KelasMacan.levelPermainanMacan);
 			}
 			catch (er:Error)
 			{

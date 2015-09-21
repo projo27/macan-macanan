@@ -11,6 +11,8 @@
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
 	import flash.media.Sound;
+	import flash.media.SoundChannel;
+	import flash.media.SoundTransform;
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	import flash.system.System;
@@ -50,6 +52,7 @@
 		var suaraMacan:Array;
 		var suaraAnak:Array;
 		var sound:Sound;
+		var soundC:SoundChannel;
 		
 		public function Main()
 		{
@@ -74,8 +77,8 @@
 			
 			timerClock = new Timer(1000, 1); //timer Waktu
 			timerClock.addEventListener(TimerEvent.TIMER_COMPLETE, tambahDetik);
-			timerClock.start();	
-		}		
+			timerClock.start();
+		}
 		
 		//saat tambah ke stage
 		protected function tambahKeStage(e:Event):void
@@ -85,17 +88,16 @@
 			buatHubunganPijak();
 			buatJalur();
 			buatBidak();
-			resetBeberapaMovie();			
+			resetBeberapaMovie();
 			buatSound();
 		}
-		
 		
 		protected function klikObjek(e:MouseEvent = null):void
 		{
 			menang = kelasMacan.cekMenang(kelasMacan.getBidakHidup(bidaks), pijakans);
 			if (menang[0])
 				tampilkanPemenang(menang[1]);
-				
+			
 			resetKlikPijakBidak();
 			try
 			{
@@ -142,7 +144,7 @@
 					// jika sebelumnya pernah memilih bidak
 					if (bidakTerklik != null)
 					{
-						var loncat:Boolean = false;						
+						var loncat:Boolean = false;
 						if (bidakTerklik.getPijakan() != null && bidakTerklik.tipeBidak == "macan")
 						{
 							bidakTerloncati = kelasMacan.bidakTerloncatiMacan(bidakTerklik.getPijakan(), pijakanTerklik);
@@ -158,7 +160,7 @@
 							
 							aturan.setLangkah(bidakTerklik, pijakanTerklik, KelasMacan.langkahKe, bidaks); // update bidak dan pijakan
 							kelasMacan.setHistoriLangkah(bidakTerklik, pijakanTerklik); // update historis
-							TextField(kotakHistoris.textHistoris).text = ((KelasMacan.langkahKe-1)+" \t: " + bidakTerklik.getNama() + ", " + pijakanTerklik.getNama()+"\n") + kotakHistoris.textHistoris.text;
+							TextField(kotakHistoris.textHistoris).text = ((KelasMacan.langkahKe - 1) + " \t: " + bidakTerklik.getNama() + ", " + pijakanTerklik.getNama() + "\n") + kotakHistoris.textHistoris.text;
 							
 							//lakukan animasi							
 							if (bidakTerklik.tipeBidak == "anak")
@@ -170,7 +172,8 @@
 							twY.addEventListener(TweenEvent.MOTION_FINISH, mulaiJalankanAI); // jika tidak loncat langsung jalankan AI
 						}
 						
-						if (loncat) { // jika masuk loncatan
+						if (loncat)
+						{ // jika masuk loncatan
 							twX.addEventListener(TweenEvent.MOTION_FINISH, pindahBidak);
 							MovieClip(kotakWaktu).gotoAndPlay(1); // memberi efek ganti warna pada jam
 						}
@@ -180,7 +183,7 @@
 				else
 				{
 					/*bidakTerklik = null;
-					pijakanTerklik = null;*/
+					 pijakanTerklik = null;*/
 				}
 				
 			}
@@ -189,7 +192,7 @@
 			}
 		}
 		
-		/*********** AI *********/		
+		/*********** AI *********/
 		protected function awalJalankanAI(e:TimerEvent):void
 		{
 			if (KelasMacan.thePlayer[0] == "AI")
@@ -200,14 +203,23 @@
 		{
 			// jika langkah selanjutnya ganjil, dan player MACAN = "AI"
 			if (KelasMacan.langkahKe % 2 == 1 && KelasMacan.thePlayer[0] == "AI")
-				jalankanAI();
+			{
+				timerAI = new Timer((KelasMacan.randomAntara(1,10)*100), 1);
+				timerAI.addEventListener(TimerEvent.TIMER_COMPLETE, jalankanAI);
+				timerAI.start();
+			}
 			else if (KelasMacan.langkahKe % 2 == 0 && KelasMacan.thePlayer[1] == "AI")
-				jalankanAI();
+			{
+				timerAI = new Timer((KelasMacan.randomAntara(1,10)*100), 1);
+				timerAI.addEventListener(TimerEvent.TIMER_COMPLETE, jalankanAI);
+				timerAI.start();
+			}
 			//selain di atas, maka bidak macan dan manusia dijalankan oleh PLAYER
 		}
 		
-		protected function jalankanAI(e:TweenEvent = null):void
+		protected function jalankanAI(e:Event = null):void
 		{
+			menang = kelasMacan.cekMenang(kelasMacan.getBidakHidup(bidaks), pijakans);
 			if (menang[0]) // jika sudah ada pemenang, stop
 			{
 				klikObjek();
@@ -227,9 +239,15 @@
 					bidakAI.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
 					
 					if (!bidakAI.terklik)
-						jalankanAI(null);
+					{
+						timerAI = new Timer(200, 1);
+						timerAI.addEventListener(TimerEvent.TIMER_COMPLETE, mulaiJalankanAI);
+						timerAI.start();
+					}
 					else
 						pijakanAI.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
+						
+					dispatchEvent(new MouseEvent(MouseEvent.CLICK));
 				}
 				else
 				{
@@ -249,11 +267,15 @@
 			catch (er:Error)
 			{
 				trace(er.message);
+				timerAI = new Timer(200, 1);
+				timerAI.addEventListener(TimerEvent.TIMER_COMPLETE, mulaiJalankanAI);
+				timerAI.start();
 			}
-		}		
+		}
+		
 		/***** END OF AI ************/
 		
-		/********** INISIALISASI PAPAN DAN BIDAK *********/		
+		/********** INISIALISASI PAPAN DAN BIDAK *********/
 		protected function buatTempatPijak():void
 		{
 			// di sini kita akan membuat Kumpulan Pijakan tengah (Center) 5x5
@@ -434,22 +456,24 @@
 			}
 		}
 		
-		private function buatSound():void 
+		private function buatSound():void
 		{
 			suaraMacan = new Array();
 			suaraAnak = new Array();
-			for (var i = 0; i < 3; i++) {
+			for (var i = 0; i < 3; i++)
+			{
 				sound = new Sound();
 				sound.load(new URLRequest("sound/macan" + (i + 1) + ".mp3"));
 				suaraMacan.push(sound);
-				//sound.play();
+					//sound.play();
 			}
 			
-			for (var a = 0; a < 4; a++) {
+			for (var a = 0; a < 4; a++)
+			{
 				sound = new Sound();
 				sound.load(new URLRequest("sound/anak" + (a + 1) + ".mp3"));
 				suaraAnak.push(sound);
-				//sound.play();
+					//sound.play();
 			}
 		}
 		
@@ -474,7 +498,7 @@
 		}
 		
 		/********** HANYA ANIMASI *********/
-		private function pindahBidak(e:TweenEvent):void 
+		private function pindahBidak(e:TweenEvent):void
 		{
 			for (var bt = 0; bt < bidakTerloncati.length; bt++)
 			{
@@ -482,7 +506,7 @@
 				geserBidakAnakPasif(bidakTerloncati[bt]);
 				kelasMacan.hapusBidakAktif(bidakTerloncati[bt], bidaks);
 				KelasMacan.sleep(100);
-			}			
+			}
 		}
 		
 		protected function geserBidakAnakPasif(b:Bidak):void
@@ -510,7 +534,7 @@
 			b.y = korY;
 		}
 		
-		private function tampilkanPemenang(pemenang:String):void 
+		private function tampilkanPemenang(pemenang:String):void
 		{
 			timerAI.stop();
 			timerClock.stop();
@@ -540,7 +564,7 @@
 				var tw:Tween = new Tween(aArr[r], "x", Regular.easeInOut, aArr[r].x, 220 + (r * 45), 10);
 				tween.push(tw);
 			}
-		}		
+		}
 		
 		private function klikHistori(e:MouseEvent):void
 		{
@@ -565,7 +589,7 @@
 			System.gc(); // release garbage
 			timerGC.start();
 		}
-		
+	
 	}
 
 }

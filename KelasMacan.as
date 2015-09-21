@@ -1,11 +1,7 @@
 ﻿package
 {
 	import flash.events.Event;
-	import flash.utils.ByteArray;
-	import flash.utils.describeType;
 	import flash.utils.getTimer;
-	import flash.utils.getDefinitionByName;
-	import flash.utils.getQualifiedClassName;
 	
 	/**
 	 * ...
@@ -21,7 +17,8 @@
 		public static const MAX_LEVEL_PERMAINAN:int = 3;
 		
 		public static var thePlayer:Array = new Array("AI", "AI"); // SET "PLAYER" ATAU "AI" [0] = MACAN, [1] = ANAK
-		public static var levelPermainan:int = 2; // SET "PLAYER" ATAU "AI" [0] = MACAN, [1] = ANAK
+		public static var levelPermainanMacan:int = 3; // set level macan = 1
+		public static var levelPermainanAnak:int = 3; // SET level anak = 3
 		
 		public static const BOBOT_MACAN:int = 5;
 		public static const BOBOT_ANAK:int = 2;
@@ -32,7 +29,7 @@
 		public static var MUSIC:Boolean = true;
 		
 		public static var langkahKe:int = 1;
-		public static var historiLangkah:Array = new Array();
+		public static var historiLangkah:Array = new Array(); //[0] = langkah ke, [1] = waktu (int), [2] = waktu (detik, menit), [3] = pijakan, [4] = bidak
 		
 		private var arrBaru:Array = new Array();
 		
@@ -74,85 +71,6 @@
 				sum += args[i];
 			}
 			return sum / args.length;
-		}
-		
-		public static function newSibling(sourceObj:Object):*
-		{
-			if (sourceObj)
-			{
-				
-				var objSibling:*;
-				try
-				{
-					var classOfSourceObj:Class = getDefinitionByName(getQualifiedClassName(sourceObj)) as Class;
-					objSibling = new classOfSourceObj();
-				}
-				
-				catch (e:Object)
-				{
-				}
-				
-				return objSibling;
-			}
-			return null;
-		}
-		
-		public static function clone(source:Object):Object
-		{
-			
-			var clone:Object;
-			if (source)
-			{
-				clone = newSibling(source);
-				
-				if (clone)
-				{
-					copyData(source, clone);
-				}
-			}
-			
-			return clone;
-		}
-		
-		public static function copyData(source:Object, destination:Object):void
-		{
-			
-			//copies data from commonly named properties and getter/setter pairs
-			if ((source) && (destination))
-			{
-				
-				try
-				{
-					var sourceInfo:XML = describeType(source);
-					var prop:XML;
-					
-					for each (prop in sourceInfo.variable)
-					{
-						
-						if (destination.hasOwnProperty(prop.@name))
-						{
-							destination[prop.@name] = source[prop.@name];
-						}
-						
-					}
-					
-					for each (prop in sourceInfo.accessor)
-					{
-						if (prop.@access == "readwrite")
-						{
-							if (destination.hasOwnProperty(prop.@name))
-							{
-								destination[prop.@name] = source[prop.@name];
-							}
-							
-						}
-					}
-				}
-				catch (err:Object)
-				{
-					
-				}
-			}
 		}
 		
 		public static function getArahLawan(arah:String = "N"):String
@@ -205,10 +123,14 @@
 		
 		public static function setLevelPermainan(lev:int = 1):void
 		{
-			if (lev > KelasMacan.MAX_LEVEL_PERMAINAN)
-				levelPermainan = KelasMacan.MAX_LEVEL_PERMAINAN;
-			else
-				levelPermainan = lev;
+			if (lev > KelasMacan.MAX_LEVEL_PERMAINAN){
+				levelPermainanAnak = KelasMacan.MAX_LEVEL_PERMAINAN;
+				levelPermainanMacan = KelasMacan.MAX_LEVEL_PERMAINAN;
+			}
+			else{
+				levelPermainanAnak = KelasMacan.MAX_LEVEL_PERMAINAN;
+				levelPermainanMacan = KelasMacan.MAX_LEVEL_PERMAINAN;
+			}
 		}
 		
 		public static function setPlayer(player1:String = "AI", player2:String = "PLAYER") {
@@ -388,7 +310,7 @@
 		{
 			if (p == null)
 				return new Array();
-			var arr:Array = pijakanKoneksi(p).concat(pijakanLoncat(p));
+			var arr:Array = (p.getBidak().tipeBidak == "macan") ? pijakanKoneksi(p).concat(pijakanLoncat(p)) : pijakanKoneksi(p);
 			return arr;
 		}
 		
@@ -678,24 +600,18 @@
 		// [0] = true/false, [1] = tipeBidak
 		public function cekMenang(bidakHidup:Array, pijakans:Array):Array
 		{
-			if (cekBidakBelumPijak("anak", bidakHidup)) {
-				return new Array(false, null);
-			}
-			
-			if (bidakHidupByTipe("anak", bidakHidup).length <= 4)
-			{
-				return new Array(true, "macan");
-			}
-			
 			var jmlLangkahMacan:int = 0;
 			jmlLangkahMacan += jmlKoneksiValid(bidakHidupByTipe("macan", bidakHidup)[0].getPijakan());
 			jmlLangkahMacan += jmlKoneksiValid(bidakHidupByTipe("macan", bidakHidup)[1].getPijakan());
 			
-			if (jmlLangkahMacan == 0)
+			if (jmlLangkahMacan == 0 && KelasMacan.langkahKe > 3)
 				return new Array(true, "anak");
+			if (cekBidakBelumPijak("anak", bidakHidup))
+				return new Array(false, null);			
+			if (bidakHidupByTipe("anak", bidakHidup).length <= 4)
+				return new Array(true, "macan");
 			
-			return new Array(false, null);
-		
+			return new Array(false, null);		
 		}
 		
 		public function printPosisiBidak(bidaks:Array) {
@@ -703,12 +619,18 @@
 				trace(b.getNama() + " " + b.status + " " + ((b.getPijakan() != null) ? b.pijakan.nama : "kosong"));
 			}
 		}
-	/*public function pijakanMaxKoneksi(pijakans:Array):Array {
-	   var arr:Array = new Array();
-	   for (var i = 0; i < pijakans.length; i++) {
-	
-	   }
-	 }*/
+		
+		public function jmlLangkahTipeBidak(tipeBidak:String = "macan") {
+			return Math.ceil(KelasMacan.langkahKe / 2);
+		}
+		
+		public function jmlLangkahSama(tipeBidak:String = "macan") {
+			var jml:int = 0;
+			for (var i = 0; i < KelasMacan.langkahKe; i++) {
+				
+			}
+			return jml;
+		}
 	}
 
 }
