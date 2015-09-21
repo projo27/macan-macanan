@@ -12,13 +12,15 @@ package
 	 */
 	public class Pijakan extends MovieClip
 	{
-		var koneksiPijakan:Array;
-		var arahPijakan:Array;
-		var koneksiLoncat:Array;
-		var arahLoncat:Array;
+		public var koneksiPijakan:Array;
+		public var arahPijakan:Array;
+		public var koneksiLoncat:Array;
+		public var arahLoncat:Array;
 		
-		private var bidak:Bidak;
-		private var nama:String;
+		public var bidak:Bidak;
+		public var nama:String;
+		
+		public var kelasMacan:KelasMacan;
 		
 		public function Pijakan()
 		{
@@ -28,6 +30,7 @@ package
 			arahPijakan = new Array(); //set arah
 			koneksiLoncat = new Array();
 			arahLoncat = new Array();
+			kelasMacan = new KelasMacan();
 			this.buttonMode = true;
 			tPijakan.mouseEnabled = false; //untuk mengeset mouse bentuk tangan (hand)
 			addEventListener(Event.ADDED_TO_STAGE, inisialisasi);
@@ -46,9 +49,9 @@ package
 		
 		public function pilihPijakan(e:MouseEvent):void
 		{
-			for (var i = 0; i < KelasMacan.semuaPijakan(this).length; i++)
+			for (var i = 0; i < kelasMacan.semuaPijakan(this).length; i++)
 			{
-				KelasMacan.semuaPijakan(this)[i].anjakKe("terpilih");
+				kelasMacan.semuaPijakan(this)[i].anjakKe("terpilih");
 			}
 		}
 		
@@ -161,8 +164,7 @@ package
 		//mengambil total koneksi (pijakan + loncat)
 		public function getTotalKoneksi():int
 		{
-			return getSemuaKoneksi().length;
-			//return koneksiPijakan.length + (koneksiLoncat.length * (2 ^ koneksiLoncat.length + 1));
+			return koneksiPijakan.length + koneksiLoncat.length;
 		}
 		
 		public function getSemuaKoneksi():Array
@@ -199,6 +201,7 @@ package
 		public function setBidak(b:Bidak):Boolean
 		{
 			bidak = b;
+			//b.setPijakan(this);
 			return true;
 		}
 		

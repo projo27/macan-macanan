@@ -1,6 +1,5 @@
 ﻿package
 {
-	import flash.display.MovieClip;
 	
 	/**
 	 * ...
@@ -8,586 +7,355 @@
 	 */
 	public class KecerdasanBuatan
 	{
-		public static var historiLangkah:Array = new Array();
-		public static var bidakAktif:Array = new Array();
-		public static var bidakPasif:Array = new Array();
-		public static var pijakan:Array = new Array();
-		public static var langkahKe:int;
-		public static var thePlayer:Array = new Array("AI", "PLAYER"); // SET "PLAYER" ATAU "AI" [0] = MACAN, [1] = ANAK
-		public static var sedangJalan:Array = new Array(); // [0] = Bidak, [1] = Pijakan
-		public static var levelPermainan:int = 1;
-		
-		public static var arrayMenang:Array = new Array(false, ""); // [0] = menang (true, false), [1] = Macan / Anak
-		
-		public static var tempPijakan:Array = new Array();
-		public static var tempBidakAktif:Array = new Array();
-		public static var tempBidakPasif:Array = new Array();
-		public static var tempSedangJalan:Array = new Array(); // [0] = Bidak, [1] = Pijakan
-		
-		public var prediksiPijakan:Array;
-		public var prediksiBidakAktif:Array;
-		public var prediksiBidakPasif:Array;
-		public var prediksiJalan:Array;
-		
-		public var kelasMacan:KelasMacan;
+		public var sedangJalan:Array; // array (bidak, pijakan)
+		private static var tempJalan:Array;
+		var kelasMacan:KelasMacan;
+		var aturan:AturanMain;
 		
 		public function KecerdasanBuatan()
 		{
-			//historiLangkah = new Array();
-			prediksiPijakan = new Array();
-			prediksiBidakAktif = new Array();
-			prediksiBidakPasif = new Array();
-			prediksiJalan = new Array();
-			
+			//sedangJalan = new Array();
+			//tempJalan = new Array();
+			aturan = new AturanMain();
 			kelasMacan = new KelasMacan();
 		}
 		
-		public static function resetKecerdasanBuatan(lvlPermainan:int = 2):void {
+		public function mariMainkan(bidakHidup:Array, pijakans:Array, langkahKe:int)
+		{ // dapatkan bidak yang hidup dan pijakan untuk dibaca
+			//tempJalan = new Array(kelasMacan.copyBidak(bidakHidup), kelasMacan.copyPijakan(pijakans));
+			var arrJalan:Array;
 			
-			historiLangkah = new Array();
-			bidakAktif = new Array();
-			bidakPasif = new Array();
-			pijakan = new Array();
-			langkahKe = historiLangkah.length;
-			sedangJalan = new Array(); // [0] = Bidak, [1] = Pijakan
-			setLevelPermainan(lvlPermainan); // set level permainan, jika ter-set
+			//var langkahSelanjutnya:int = langkahSebelum + 1; // langkah sebelumnya genap, maka prediksi selanjutnya adalah langkah ganjil
+			if (langkahKe % 2 == 1 && KelasMacan.thePlayer[0] == "AI") // jika langkah ganjil
+				arrJalan = mainkanMacan(bidakHidup, pijakans, langkahKe);
+			if (langkahKe % 2 == 0 && KelasMacan.thePlayer[1] == "AI")
+				arrJalan = mainkanAnak(bidakHidup, pijakans, langkahKe);
 			
-			arrayMenang = new Array(false, ""); // [0] = menang (true, false), [1] = Macan / Anak
+			sedangJalan = new Array(arrJalan[0],arrJalan[1]);
+		
+		}
+		
+		private function mainkanAnak(bidakHidup:Array, pijakans:Array, langkahSelanjutnya:int):Array
+		{
+			var b:Bidak = new Bidak();
+			var p:Pijakan = new Pijakan();
+			var melangkah:Array = new Array();
+			var skor:Number;
+			var jml:int = 0;
 			
-			tempPijakan = new Array();
-			tempBidakAktif = new Array();
-			tempBidakPasif = new Array();
-			tempSedangJalan = new Array(); // [0] = Bidak, [1] = Pijakan
-		}
-		
-		public static function getHistoriLangkah():Array
-		{
-			return historiLangkah;
-		}
-		
-		public static function setLevelPermainan(lev:int = 1):void
-		{
-			if (lev > KelasMacan.MAX_LEVEL_PERMAINAN)
-				levelPermainan = KelasMacan.MAX_LEVEL_PERMAINAN;
-			else
-				levelPermainan = lev;
-		}
-		
-		public static function setPlayer(player1:String = "AI", player2:String = "PLAYER") {
-			KecerdasanBuatan.thePlayer[0] = player1;
-			KecerdasanBuatan.thePlayer[1] = player2;
-		}
-		
-		public static function setHistoriLangkah(b:Bidak, p:Pijakan):void
-		{
-			langkahKe++;
-			historiLangkah.push(new Array(langkahKe, new Date().getTime(), KelasMacan.waktunya, p, b));
-			//trace((historiLangkah.length) + " | " + KelasMacan.waktunya + " | " + p.getNama() + " | " + b.getNama());
-		}
-		
-		//parameter bid = bidakAktif, atau tempBidakAktif
-		public static function cekBidakBelumPijak(bid:Array = null):Array
-		{
-			var bidaks:Array = bidakAktif;
-			if (bid != null)
-				bidaks = bid;
-			
-			var bidakBelumPijak:Array = new Array();
-			for (var b = 0; b < bidaks.length; b++)
+			/*jml = kelasMacan.bidakBelumPijak("anak", bidakHidup).length;
+			if (jml > 0)
 			{
-				if (Bidak(bidaks[b]).getPijakan() == null)
-				{
-					bidakBelumPijak.push(bidaks[b]);
-				}
-			}
-			return bidakBelumPijak;
-		}
-		
-		public static function cekBidakMacanBelumPijak(bid:Array = null):Array
-		{
-			var bidakMacanBelumPijak:Array = new Array();
-			for (var m = 0; m < cekBidakBelumPijak(bid).length; m++)
-			{
-				if (Bidak(cekBidakBelumPijak(bid)[m]).tipeBidak == "macan")
-				{
-					bidakMacanBelumPijak.push(cekBidakBelumPijak(bid)[m]);
-				}
-			}
-			return bidakMacanBelumPijak;
-		}
-		
-		public static function cekBidakAnakBelumPijak(bid:Array = null):Array
-		{
-			var bidakAnakBelumPijak:Array = new Array();
-			for (var m = 0; m < cekBidakBelumPijak(bid).length; m++)
-			{
-				if (Bidak(cekBidakBelumPijak(bid)[m]).tipeBidak == "anak")
-				{
-					bidakAnakBelumPijak.push(cekBidakBelumPijak(bid)[m]);
-				}
-			}
-			return bidakAnakBelumPijak;
-		}
-		
-		public static function bidakMacanAktif(bid:Array = null):Array
-		{
-			var bidaks:Array = bidakAktif;
-			if (bid != null)
-				bidaks = bid;
-			var arrB:Array = new Array();
-			for (var b = 0; b < bidaks.length; b++)
-			{
-				if (bidaks[b].tipeBidak == "macan")
-					arrB.push(bidaks[b]);
-			}
-			return arrB;
-		}
-		
-		public static function bidakAnakAktif(bid:Array = null):Array
-		{
-			var bidaks:Array = bidakAktif;
-			if (bid != null)
-				bidaks = bid;
-			var arrB:Array = new Array();
-			for (var b = 0; b < bidaks.length; b++)
-			{
-				if (bidaks[b].tipeBidak == "anak")
-					arrB.push(bidaks[b]);
-			}
-			return arrB;
-		}
-		
-		public static function hitungLangkahBidak(b:Bidak, pij:Array = null):int
-		{
-			var score = 0;
-			
-			if (b.tipeBidak == "macan")
-			{
-				//score = KelasMacan.jumlahKoneksiValid(b) + KelasMacan.bidakTerloncatiMacan(b.getPijakan(), p).length;
-				score = KelasMacan.jumlahKoneksiValid(b, pij);
+				b = kelasMacan.bidakBelumPijak("anak", bidakHidup)[KelasMacan.randomAntara(0, (jml - 1))];
+				jml = kelasMacan.jmlPijakanBelumBerbidak(pijakans);
+				p = kelasMacan.pijakanBelumBerBidak(pijakans)[KelasMacan.randomAntara(0, (jml - 1))];
 			}
 			else
-				score = KelasMacan.jumlahKoneksiValid(b, pij);
-			return score;
-		}
-		
-		public static function getPlayerMacan():String
-		{
-			return thePlayer[0]; // dapatkan player 1
-		}
-		
-		public static function getPlayerAnak():String
-		{
-			return thePlayer[1]; // dapatkan player 2
-		}
-		
-		public static function mariMainkan():void
-		{
+			{
+				jml = kelasMacan.bidakHidupByTipe("anak", bidakHidup).length;
+				b = kelasMacan.bidakHidupByTipe("anak", bidakHidup)[KelasMacan.randomAntara(0, (jml - 1))];
+				jml = kelasMacan.jmlPijakanBelumBerbidak(pijakans);
+				p = kelasMacan.pijakanBelumBerBidak(pijakans)[KelasMacan.randomAntara(0, (jml - 1))];
+			}*/
 			
-			var kelasMacan:KelasMacan = new KelasMacan();
-			sedangJalan = new Array(null, null);
-			tempBidakAktif = kelasMacan.copyArray(bidakAktif);
-			tempPijakan = kelasMacan.copyArray(pijakan);
-			//Pijakan(tempPijakan[3]).setBidak(new Bidak());
-			if (historiLangkah.length % 2 == 0 && getPlayerMacan() == "AI") // jika langkah ganjil dan player macan = AI
-				sedangJalan = jalankanMacan(tempBidakAktif, tempPijakan);
-			else if (historiLangkah.length % 2 == 1 && getPlayerAnak() == "AI") // jika langkah genap dan player anak = AI
-				sedangJalan = jalankanAnak();
+			var minmax:Array = MiniMax(bidakHidup, pijakans, KelasMacan.levelPermainan, false);
+			b = kelasMacan.cariBidakByNama(minmax[1].getNama(), bidakHidup);
+			p = kelasMacan.cariPijakanByNama(minmax[2].getNama(), pijakans);
+			
+			melangkah.push(b);
+			melangkah.push(p);
+			
+			return melangkah;
 		}
 		
-		public static function jalankanMacan(bid:Array = null, pij:Array = null):Array
+		private function mainkanMacan(bidakHidup:Array, pijakans:Array, langkahSelanjutnya:int):Array
 		{
 			var b:Bidak = new Bidak();
 			var p:Pijakan = new Pijakan();
 			var melangkah:Array = new Array();
 			var kbut:KecerdasanBuatan = new KecerdasanBuatan();
 			var skor:Number;
+			var jml:int;
 			
-			if (historiLangkah.length == 0)
+			if (langkahSelanjutnya == 1)
 			{
-				melangkah.push(bidakMacanAktif(bid)[0]);
-				melangkah.push(KelasMacan.pijakanBelumBerBidak(pij)[KelasMacan.randomAntara(0, KelasMacan.pijakanBelumBerBidak().length)]);
+				b = kelasMacan.bidakBelumPijak("macan", bidakHidup)[0];
+				p = kelasMacan.pijakanBelumBerBidak(pijakans)[KelasMacan.randomAntara(0, kelasMacan.jmlPijakanBelumBerbidak(pijakans) - 1)];
 			}
-			else if (historiLangkah.length == 2)
+			else if (langkahSelanjutnya == 3)
 			{
-				melangkah.push(bidakMacanAktif(bid)[1]);
-				melangkah.push(KelasMacan.pijakanBelumBerBidak(pij)[KelasMacan.randomAntara(0, KelasMacan.pijakanBelumBerBidak().length)]);
+				//trace(kelasMacan.bidakBelumPijak("macan", bidakHidup));
+				b = kelasMacan.bidakBelumPijak("macan", bidakHidup)[0];
+				p = kelasMacan.pijakanBelumBerBidak(pijakans)[KelasMacan.randomAntara(0, kelasMacan.jmlPijakanBelumBerbidak(pijakans) - 1)];
 			}
 			else
 			{
-				/*b = bidakMacanAktif(bid)[KelasMacan.randomAntara(0, 1)];
-				   p = KelasMacan.koneksiValid(b)[KelasMacan.randomAntara(0, KelasMacan.jumlahKoneksiValid(b) - 1)];
-				   if (hitungLangkahBidak(b) == 0)
-				   return jalankanMacan(bid, pij);
-				
-				   melangkah.push(b);
-				 melangkah.push(p);*/
-				
-				skor = kbut.MiniMax(KelasMacan.bidakPijakanKeNode(bid, pij), levelPermainan, true);
-				//melangkah = tempSedangJalan;
-				
-//				var b:Bidak;
-				for (var i = 0; i < KecerdasanBuatan.bidakAktif.length; i++)
-				{
-					if (bidakAktif[i].getNama() == tempSedangJalan[0].getNama())
-						b = bidakAktif[i]
-				}
-				var p:Pijakan;
-				for (i = 0; i < KecerdasanBuatan.pijakan.length; i++)
-				{
-					if (pijakan[i].getNama() == tempSedangJalan[1].getNama())
-						p = pijakan[i];
-				}
-				trace(b.getNama() + " " + p.getNama());
-				melangkah.push(b);
-				melangkah.push(p);
-					//melangkah.push(KelasMacan.bandingBidak(tempSedangJalan[0], bidakAktif));
-					//melangkah.push(KelasMacan.bandingPijakan(tempSedangJalan[1], pijakan));
+				var minmax:Array = MiniMax(bidakHidup, pijakans, KelasMacan.levelPermainan, true);
+				b = kelasMacan.cariBidakByNama(minmax[1].getNama(), bidakHidup);
+				p = kelasMacan.cariPijakanByNama(minmax[2].getNama(), pijakans);
 			}
-			return melangkah;
-		
-		}
-		
-		public static function jalankanAnak(bid:Array = null, pij:Array = null):Array
-		{
-			var melangkah:Array = new Array();
-			var b:Bidak = new Bidak();
-			var p:Pijakan = new Pijakan();
-			
-			if (cekBidakAnakBelumPijak(bid).length != 0)
-			{
-				b = cekBidakAnakBelumPijak(bid)[KelasMacan.randomAntara(0, (cekBidakAnakBelumPijak(bid).length - 1))];
-				p = KelasMacan.pijakanBelumBerBidak(pij)[KelasMacan.randomAntara(0, (KelasMacan.pijakanBelumBerBidak(pij).length - 1))];
-				
-				melangkah.push(b);
-				melangkah.push(p);
-			}
-			else
-			{
-				b = bidakAnakAktif(bid)[KelasMacan.randomAntara(0, bidakAnakAktif(bid).length - 1)];
-				p = KelasMacan.koneksiValid(b)[KelasMacan.randomAntara(0, (KelasMacan.koneksiValid(b).length - 1))];
-				if (hitungLangkahBidak(b) == 0)
-					return jalankanAnak();
-				
-				melangkah.push(b);
-				melangkah.push(p);
-			}
+			melangkah.push(b);
+			melangkah.push(p);
 			
 			return melangkah;
 		}
 		
-		public static function cekMenang(bid:Array = null, langkahKe:int = -1):Array
+		// return [0] = score, [1] = bidak, [2] = pijakan
+		protected function MiniMax(bidaks:Array, pijakans:Array, kedalaman:int, maxPlayer:Boolean = true, jmlBidTerloncati:int = 0):Array
 		{
-			var arrayMenang:Array;
-			var langkahNo:int;
-			if (bid == null)
+			var bids:Array = bidaks; // copy array baru dari bidaks
+			var pijs:Array = pijs; // copy array baru dari pijakans
+			var bidPilih:Bidak;
+			var pijPilih:Pijakan;
+			var tipeBidak:String;
+			var langkahKe:int;
+			var bidTerloncati:Array;
+			var pijTerloncati:Array = new Array();
+			var pijSebelum:Pijakan;
+			var jmlPijBidakSebelum:int;
+			var jmlPijBidakSesudah:int;
+			var jmlSelisihPijBid:int;
+			
+			var skor:Number;
+			var skorTerbaik:Number = (maxPlayer) ? Number.NEGATIVE_INFINITY : Number.POSITIVE_INFINITY;
+			var menang = kelasMacan.cekMenang(bidaks, pijakans);
+			
+			var prediksi:Array;
+			
+			if (maxPlayer)
 			{
-				bid = KecerdasanBuatan.bidakAktif;
-				var arrayMenang:Array = KecerdasanBuatan.arrayMenang;
-				arrayMenang.pop();
-				arrayMenang.pop();
+				tipeBidak = "macan";
+				langkahKe = 3;
 			}
 			else
 			{
-				arrayMenang = new Array();
+				tipeBidak = "anak";
+				langkahKe = 4;
 			}
 			
-			if (langkahKe == -1)
-				langkahNo = KecerdasanBuatan.langkahKe;
-			else
-				langkahNo = langkahKe;			
+			//jika node terakhir atau ada pemenang
+			if (kedalaman == 0 || menang[0])
+			{
+				if (menang[1] == "macan")
+					skor = Evaluasi(pijakans, menang[1], true);
+				else if (menang[1] == "anak")
+					skor = Evaluasi(pijakans, menang[1], true);
+				else
+					skor = Evaluasi(pijakans, menang[1], false, jmlBidTerloncati);
+				
+				return new Array(skor, null, null);
+			}
 			
-			if (langkahNo % 2 == 1) // jika langkah ganjil (langkah macan)
+			// jika ada bidak yang belum pijak
+			if (kelasMacan.cekBidakBelumPijak(tipeBidak, bidaks))
 			{
-				//trace("false");
-				if (KecerdasanBuatan.totalHitungLangkahBidak("macan", bid) == 0) // jika bidak macan langkah habis (anak menang)
+				bids = kelasMacan.bidakBelumPijak(tipeBidak, bidaks);
+				
+				pijs = kelasMacan.pijakanBelumBerBidak(pijakans);
+				for (var p = 0; p < pijs.length; p++)
 				{
-					arrayMenang.push(true);
-					arrayMenang.push("anak");
-				}
-				else
-				{
-					arrayMenang.push(false);
-					arrayMenang.push("");
-				}
-			}
-			else if (historiLangkah.length % 2 == 0) // jika langkah genap (langkah anak)
-			{
-				if (bidakAnakAktif(bid).length == 4) // jika bidak Anak yang aktif tersisa 4 (macan menang)
-				{
-					arrayMenang.push(true);
-					arrayMenang.push("macan");
-				}
-				else
-				{
-					arrayMenang.push(false);
-					arrayMenang.push("");
-				}
-			}
-			return arrayMenang;
-		}
-		
-		//perhitungan langkah Bidak
-		public static function totalHitungLangkahBidak(jenisBidak:String = "macan", bid:Array = null, pij:Array = null):int
-		{
-			var jumlahLangkah:int = 0;
-			if (jenisBidak == "macan")
-			{
-				if (cekBidakMacanBelumPijak(bid).length == 0)
-				{
-					for (var m = 0; m < bidakMacanAktif(bid).length; m++)
+					//trace(bids[0].getNama() + " "+pijs[p].getNama());
+					if (aturan.cekLangkah(bids[0], pijs[p], langkahKe, bidaks))
 					{
-						jumlahLangkah += hitungLangkahBidak(bidakMacanAktif(bid)[m]);
+						aturan.setLangkah(bids[0], pijs[p], langkahKe, bidaks);
+						if (maxPlayer)
+						{
+							skor = MiniMax(bidaks, pijakans, (kedalaman - 1), false)[0];
+							if (skor > skorTerbaik)
+							{ // jika max maka simpan bidak yang dipilih
+								bidPilih = kelasMacan.copyBidak(bids[0]);
+								pijPilih = kelasMacan.copyPijakan(pijs[p]);
+								skorTerbaik = skor;
+							}
+						}
+						else
+						{
+							skor = MiniMax(bidaks, pijakans, (kedalaman - 1), true)[0];
+							//trace(skor);
+							if (skor < skorTerbaik)
+							{ // jika max maka simpan bidak yang dipilih
+								bidPilih = kelasMacan.copyBidak(bids[0]);
+								pijPilih = kelasMacan.copyPijakan(pijs[p]);
+								skorTerbaik = skor;
+							}							
+						}
+						aturan.setLangkah(bids[0], bids[0].getPijakanSebelum(), langkahKe, bidaks);
 					}
 				}
-				else
-					jumlahLangkah ++;
 			}
 			else
 			{
-				for (var a = 0; a < bidakAnakAktif(bid).length; a++)
+				bids = kelasMacan.bidakHidupByTipe(tipeBidak, bidaks);
+				for (var b = 0; b < bids.length; b++)
 				{
-					jumlahLangkah += hitungLangkahBidak(bidakAnakAktif(bid)[a]);
+					pijs = kelasMacan.koneksiValid(bids[b].getPijakan());
+					for (p = 0; p < pijs.length; p++)
+					{
+						if (maxPlayer)
+						{
+							if (aturan.cekLangkah(bids[b], pijs[p], langkahKe, bidaks))
+							{
+								jmlPijBidakSebelum = kelasMacan.jmlPijakanBerbidak(pijakans, "anak");
+								bidTerloncati = kelasMacan.bidakTerloncatiMacan(bids[b].getPijakan(), pijs[p]);
+								pijTerloncati = new Array();
+								if (bidTerloncati.length == 2) {
+									for (var x = 0; x < bidTerloncati.length; x ++) {
+										pijTerloncati.push(bidTerloncati[x].getPijakan());
+										bidTerloncati[x].setDisableTemp();
+										pijTerloncati[x].setBidak(null);
+									}
+								}
+								pijSebelum = bids[b].getPijakan();
+								aturan.setLangkah(bids[b], pijs[p], langkahKe, bidaks);
+								
+								jmlPijBidakSesudah = kelasMacan.jmlPijakanBerbidak(pijakans, "anak");
+								jmlSelisihPijBid = ((jmlPijBidakSebelum - jmlPijBidakSesudah) == 2) ? 2 : 0;
+								
+								skor = MiniMax(bidaks, pijakans, (kedalaman - 1), false, jmlSelisihPijBid)[0];
+								if (skor > skorTerbaik){
+									bidPilih = kelasMacan.copyBidak(bids[b]);
+									pijPilih = kelasMacan.copyPijakan(pijs[p]);
+									skorTerbaik = skor;
+								}
+								// kembalikan kondisi papan seperti semula							
+								if (bidTerloncati.length == 2) {
+									for (x = 0; x < bidTerloncati.length; x++) {
+										bidTerloncati[x].setEnable(pijTerloncati[x]);
+										pijTerloncati[x].setBidak(bidTerloncati[x]);
+									}
+								}
+								aturan.setLangkah(bids[b], pijSebelum, langkahKe, bidaks);	
+							}
+						}
+						else
+						{
+							if (aturan.cekLangkah(bids[b], pijs[p], langkahKe, bidaks)) {
+								aturan.setLangkah(bids[b], pijs[p], langkahKe, bidaks);						
+								skor = MiniMax(bidaks, pijakans, (kedalaman - 1), true)[0];
+								if (skor < skorTerbaik){
+									bidPilih = kelasMacan.copyBidak(bids[b]);
+									pijPilih = kelasMacan.copyPijakan(pijs[p]);
+									skorTerbaik = skor;
+								}
+								aturan.setLangkah(bids[b], bids[b].getPijakanSebelum(), langkahKe, bidaks);
+							}
+						}
+					}
 				}
+				
+				//kelasMacan.printPosisiBidak(bidaks);
 			}
-			return jumlahLangkah;
+			trace(bidPilih.getNama() + " " + pijPilih.getNama());
+			return new Array(skorTerbaik, bidPilih, pijPilih);
 		}
 		
-		public function Evaluasi(pijakans:Array, langkahKe:int, bidaks:Array = null, bidaksPasif:Array = null):Number {
+		// return [0] = pijakans, [1] = bidaks, [2] = pijakan, [3] = bidak
+		protected function prediksiLangkah(bidaks:Array, pijakans:Array, tipeBidak:String = "macan"):Array
+		{
+			var retArr:Array = new Array();
+			var langkah:int;
+			var copyBidaks:Array;
+			var copyPijakans:Array;
+			var bidakTerloncati:Array;
+			var bid:Bidak;
+			var pij:Pijakan;
+			
+			if (tipeBidak == "macan")
+				langkah = 3;
+			else
+				langkah = 4;
+			
+			if (kelasMacan.cekBidakBelumPijak(tipeBidak, bidaks))
+			{
+				for (var i = 0; i < 1; i++)
+				{
+					copyBidaks = kelasMacan.copyBidakArray(bidaks);
+					for (var p = 0; p < kelasMacan.jmlPijakanBelumBerbidak(pijakans); p++)
+					{
+						copyPijakans = kelasMacan.copyPijakanArray(pijakans);
+						
+						if (aturan.cekLangkah(copyBidaks[i], copyPijakans[p], langkah, copyBidaks))
+						{
+							aturan.setLangkah(copyBidaks[i], copyPijakans[p], langkah, copyBidaks);
+							retArr.push(new Array(copyPijakans, copyBidaks, copyPijakans[p], copyBidaks[i]));
+						}
+					}
+				}
+			}
+			else
+			{
+				for (i = 0; i < kelasMacan.bidakHidupByTipe(tipeBidak, bidaks).length; i++)
+				{
+					for (p = 0; p < kelasMacan.koneksiValid(kelasMacan.bidakHidupByTipe(tipeBidak, bidaks)[i].getPijakan()).length; p++)
+					{
+						copyBidaks = kelasMacan.copyBidakArray(bidaks);
+						bid = kelasMacan.cariBidakByNama(kelasMacan.bidakHidupByTipe(tipeBidak, bidaks)[i].getNama(), copyBidaks);
+						copyPijakans = kelasMacan.copyPijakanArray(pijakans);
+						pij = kelasMacan.cariPijakanByNama(kelasMacan.koneksiValid(bid.getPijakan())[p].getNama(), copyPijakans);
+						
+						if (aturan.cekLangkah(bid, pij, langkah, copyBidaks))
+						{
+							bidakTerloncati = kelasMacan.bidakTerloncatiMacan(bid.getPijakan(), pij);
+							if (bidakTerloncati.length == 2)
+							{
+								kelasMacan.hapusBidakAktif(bidakTerloncati[0], copyBidaks);
+								kelasMacan.hapusBidakAktif(bidakTerloncati[1], copyBidaks);
+							}
+							aturan.setLangkah(bid, pij, langkah, copyBidaks);
+							retArr.push(new Array(copyPijakans, copyBidaks, pij, bid));
+						}
+					}
+				}
+			}
+			
+			for (i = 0; i < retArr.length; i++)
+			{
+				trace(retArr[i][3].getNama() + " " + retArr[i][2].getNama());
+			}
+			
+			return retArr;
+		}
+		
+		protected function Evaluasi(pijakans:Array, tipeBidak:String, menang:Boolean = false, jmlBidTerloncati:int = 0):Number
+		{
 			var pijaks:Array = pijakans;
-			var bidMacans:Array = kelasMacan.representasiPapan(pijaks, bidaksPasif)[0];
-			var bidAnaks:Array = kelasMacan.representasiPapan(pijaks, bidaksPasif)[1];
+			var bidMacans:Array = kelasMacan.representasiPapan(pijaks)[0];
+			var bidAnaks:Array = kelasMacan.representasiPapan(pijaks)[1];
 			var nilaiMacan:Number;
 			var nilaiAnak:Number;
 			var nilaiTotal:Number;
+			var nilaiBidTerloncati:Number = jmlBidTerloncati;
 			
 			/*
 			 * z = x(a+2b)+x(c+2d)
 			 * z = x((a+2b) + (c+2d))
 			 * z = x((a+c+(2(b+d));
 			 * */
-			if (cekMenang(bidaks, langkahKe)[0]) {
-				if (langkahKe % 2 == 1) {
+			if (menang)
+			{
+				if (tipeBidak == "macan")
+				{
 					nilaiTotal = 100;
 				}
 				else
 					nilaiTotal = -100;
 			}
-			else {
-				
-				nilaiMacan = KelasMacan.BOBOT_MACAN * (bidMacans[2] + (KelasMacan.BOBOT_LONCATAN * bidMacans[3]));
-				nilaiAnak = KelasMacan.BOBOT_ANAK * (bidAnaks[2] + (KelasMacan.BOBOT_LONCATAN * bidAnaks[3]));
-				nilaiTotal = nilaiMacan - nilaiAnak;
-			}			
-			
-			//trace(KecerdasanBuatan.langkahKe);
-			trace(bidMacans[0]+", "+bidMacans[1]+", "+bidMacans[2]+", "+bidMacans[3]+", "+nilaiMacan);
-			trace(bidAnaks[0] + ", " + bidAnaks[1] + ", " + bidAnaks[2] + ", " + bidAnaks[3]+", "+nilaiAnak);
-			
-			trace(nilaiTotal);
-			return nilaiTotal;
-		}		
-		
-		
-		public function MiniMax(node:Array, kedalaman:int, maxPlayer:Boolean):Number
-		{
-			var dalam:int = kedalaman;
-			var jenisBidak:String = "macan";
-			var langkahTerbaik:Number = 0;
-			var langkahKe:Number = 1;
-			var b:Number = 0;
-			var p:Number = 0;
-			var bi:Bidak = new Bidak();
-			var bidaks:Array = new Array();
-			
-			if (!maxPlayer) {
-				jenisBidak = "anak";
-				langkahKe = 2;
-			}
-			
-			//trace("kedalaman " + kedalaman + " bidak " + jenisBidak);
-			if (kedalaman == 0)
-			{
-				return Evaluasi(node[1], langkahKe, node[0], node[2]);
-				//trace("hitung kedalaman " + jenisBidak+ " "+kedalaman + " total langkah : " + totalHitungLangkahBidak(jenisBidak, node[0], node[1]));
-				//return totalHitungLangkahBidak(jenisBidak, node[0], node[1]);
-			}
-			
-			kedalaman--;
-			
-			if (maxPlayer)
-			{
-				langkahTerbaik = Number.NEGATIVE_INFINITY;
-				
-				bidaks = (cekBidakMacanBelumPijak(node[0]).length == 1) ? cekBidakMacanBelumPijak(node[0]) : bidakMacanAktif(node[0]);
-				//trace(bidaks.length);
-				
-				var kb:KecerdasanBuatan = new KecerdasanBuatan();
-				kb.prediksiBidakAktif = kelasMacan.copyArray(node[0]);
-				kb.prediksiBidakPasif = kelasMacan.copyArray(node[2]);
-						
-				for (b = 0; b < bidaks.length; b++)
-				{
-					//if (hitungLangkahBidak(node[0][b]) != 0 && bi.getPijakan() != null)
-					//{
-					trace(KelasMacan.jumlahKoneksiValid(bidaks[b], node[1]));
-					for (p = 0; p < KelasMacan.jumlahKoneksiValid(bidaks[b], node[1]); p++)
-					{						
-						kb.prediksiPijakan = kelasMacan.copyArray(node[1]);
-						bi = bidaks[b];
-						//trace(bi.getNama());
-						var aturan:AturanMain = new AturanMain();
-						
-						if (!aturan.cekLangkah(bi, KelasMacan.koneksiValid(bi)[p], kb.prediksiBidakAktif, 0)){
-							//trace (bi.getNama());
-							continue;
-						}
-						else {
-							trace("macan kedalaman : " + dalam + " " + bi.getNama() + " " + KelasMacan.koneksiValid(bi, kb.prediksiPijakan)[p].getNama());
-							var pijakansebelum:Pijakan = bi.getPijakan();							
-							
-							kb.prediksiBidakPasif = KelasMacan.bidakTerloncatiMacan(bi.getPijakan(), KelasMacan.koneksiValid(bi)[p]);
-							trace("jml bidak terloncati : " + kb.prediksiBidakPasif.length);
-							aturan.setLangkah(bi, KelasMacan.koneksiValid(bi)[p]);
-							var skor:Number = kb.MiniMax(KelasMacan.bidakPijakanKeNode(kb.prediksiBidakAktif, kb.prediksiPijakan, kb.prediksiBidakPasif), kedalaman, false);
-							aturan.setLangkah(bi, bi.getPijakanSebelum());
-						};
-						
-						if(langkahTerbaik < skor){							
-							tempSedangJalan.pop();
-							tempSedangJalan.pop();
-							tempSedangJalan.push(bi);
-							tempSedangJalan.push(KelasMacan.koneksiValid(bi, kb.prediksiPijakan)[p]);
-						}
-						
-						langkahTerbaik = Math.max(langkahTerbaik, skor);
-					}
-				}
-				return langkahTerbaik;
-			}
 			else
 			{
-				langkahTerbaik = Number.POSITIVE_INFINITY;
-				
-				bidaks = (cekBidakAnakBelumPijak(node[0]).length > 0) ? new Array(cekBidakAnakBelumPijak(node[0])[0]) : bidakAnakAktif(node[0]);
-				
-				trace("tes "+bidaks.length);
-				for (b = 0; b < bidaks.length; b++)
-				{
-					//trace(KelasMacan.jumlahKoneksiValid(bidaks[b], node[1]));
-					for (p = 0; p < KelasMacan.jumlahKoneksiValid(bidaks[b], node[1]); p++)
-					{
-						var kb:KecerdasanBuatan = new KecerdasanBuatan();
-						kb.prediksiBidakAktif = bidaks;
-						kb.prediksiPijakan = node[1];
-						kb.prediksiBidakPasif = node[2];
-						bi = bidaks[b];
-						//if (cekBidakAnakBelumPijak(kb.prediksiBidakAktif).length > 0)
-							//bi = cekBidakAnakBelumPijak(kb.prediksiBidakAktif)[0];
-						
-						var aturan:AturanMain = new AturanMain();
-						if (!aturan.cekLangkah(bi, KelasMacan.koneksiValid(bi)[p], kb.prediksiBidakAktif, 1)){
-							//trace (bi.getNama());
-							continue;
-						}
-						else {
-							aturan.setLangkah(bi, KelasMacan.koneksiValid(bi)[p]);
-							var skor:Number = kb.MiniMax(KelasMacan.bidakPijakanKeNode(kb.prediksiBidakAktif, kb.prediksiPijakan, kb.prediksiBidakPasif), kedalaman, true);
-						}
-						//if (aturan.pilihKoneksiPijak(bi, KelasMacan.koneksiValid(bi, kb.prediksiPijakan)[p]))
-						
-						//if (langkahTerbaik > skor)
-						//{
-							//tempBidakAktif = kb.prediksiBidakAktif;
-							//tempPijakan = kb.prediksiPijakan;
-							//tempBidakPasif = kb.prediksiBidakPasif;
-							tempSedangJalan.pop();
-							tempSedangJalan.pop();
-							tempSedangJalan.push(bi);
-							tempSedangJalan.push(KelasMacan.koneksiValid(bi, kb.prediksiPijakan)[p]);
-						//}
-						langkahTerbaik = Math.min(langkahTerbaik, skor);
-						trace("anak kedalaman : " + dalam + " " + bi.getNama() + " " + KelasMacan.koneksiValid(bi, kb.prediksiPijakan)[p].getNama() + " skor " + langkahTerbaik);
-					}
-				}
-				return langkahTerbaik;
+				//trace(bidMacans[2]);
+				//trace(bidAnaks[2]);
+				nilaiMacan = KelasMacan.BOBOT_MACAN * (bidMacans[2] + (KelasMacan.BOBOT_LONCATAN * bidMacans[3])) + nilaiBidTerloncati * 100;
+				nilaiAnak = KelasMacan.BOBOT_ANAK * (bidAnaks[2] + (KelasMacan.BOBOT_LONCATAN * bidAnaks[3]));
+				nilaiTotal = nilaiMacan - nilaiAnak;
 			}
-			//return 0;
+			
+			//trace(KecerdasanBuatan.langkahKe);
+			trace("---------");			
+			trace(bidMacans[0] + ", " + bidMacans[1] + ", " + bidMacans[2] + ", " + bidMacans[3] + ", " + nilaiMacan+" bobot : "+KelasMacan.BOBOT_LONCATAN);
+			trace(bidAnaks[0] + ", " + bidAnaks[1] + ", " + bidAnaks[2] + ", " + bidAnaks[3] + ", " + nilaiAnak);
+			
+			//trace(nilaiTotal);
+			return nilaiTotal;
 		}
-	
-	/*
-	 *
-	   function minimax(node, depth, maximizingPlayer)
-		if depth = 0 or node is a terminal node
-			return the heuristic value of node
-		if maximizingPlayer
-			bestValue := -∞
-			for each child of node
-				val := minimax(child, depth - 1, FALSE)
-				bestValue := max(bestValue, val)
-				return bestValue
-		else
-			bestValue := +∞
-			for each child of node
-				val := minimax(child, depth - 1, TRUE)
-				bestValue := min(bestValue, val)
-				return bestValue
-	
-	   (* Initial call for maximizing player *)
-	   minimax(origin, depth, TRUE)
-	
-	   function alphaBeta(node, alpha, beta, maximisingPlayer) {
-	   var bestValue;
-	   if (node.children.length === 0) {
-	   bestValue = node.data;
-	   }
-	   else if (maximisingPlayer) {
-	   bestValue = alpha;
-	
-	   // Recurse for all children of node.
-	   for (var i=0, c=node.children.length; i<c; i++) {
-	   var childValue = alphaBeta(node.children[i], bestValue, beta, false);
-	   bestValue = Math.max(bestValue, childValue);
-	   if (beta <= bestValue) {
-	   break;
-	   }
-	   }
-	   }
-	   else {
-	   bestValue = beta;
-	
-	   // Recurse for all children of node.
-	   for (var i=0, c=node.children.length; i<c; i++) {
-	   var childValue = alphaBeta(node.children[i], alpha, bestValue, true);
-	   bestValue = Math.min(bestValue, childValue);
-	   if (bestValue <= alpha) {
-	   break;
-	   }
-	   }
-	   }
-	   return bestValue;
-	   }
-	
-	   /*function alphabeta(node, depth, α, β, maximizingPlayer)
-	   if depth = 0 or node is a terminal node
-	   return the heuristic value of node
-	   if maximizingPlayer
-	   v := -∞
-	   for each child of node
-	   v := max(v, alphabeta(child, depth - 1, α, β, FALSE))
-	   α := max(α, v)
-	   if β ≤ α
-	   break (* β cut-off *)
-	   return v
-	   else
-	   v := ∞
-	   for each child of node
-	   v := min(v, alphabeta(child, depth - 1, α, β, TRUE))
-	   β := min(β, v)
-	   if β ≤ α
-	   break (* α cut-off *)
-	   return v
-	
-	 alphabeta(origin, depth, -∞, +∞, TRUE)*/
 	}
 }

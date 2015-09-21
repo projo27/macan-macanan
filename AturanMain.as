@@ -9,13 +9,47 @@
 	public class AturanMain
 	{
 		var historiLangkah:Array;
+		var kelasMacan:KelasMacan;
 		
 		public function AturanMain()
 		{
-			historiLangkah = KecerdasanBuatan.historiLangkah;
+			historiLangkah = KelasMacan.historiLangkah;
+			kelasMacan = new KelasMacan();
 		}
 		
-		public function cekLangkah(b:Bidak, p:Pijakan, bid:Array = null, jmlHistoLangkah:int = -1):Boolean
+		public function cekLangkah(b:Bidak, p:Pijakan, langkahKe:int, bidaks:Array):Boolean
+		{
+			if (p == null)
+				return true;
+			if (p.getBidak() != null) // jika pijakan yang dituju sudah ada bidak, maka gagal
+				return false;
+			if (langkahKe % 2 == 1 && b.tipeBidak != "macan") // jika langkah ganjil dan bukan macan
+				return false;
+			if (langkahKe % 2 == 0 && b.tipeBidak != "anak") // jika langkah genap dan bukan macan
+				return false;
+			
+			if (b.getPijakan() == null) // jika bidak blm pijak, dan pijakan tujuan tidak ada bidak
+				return true;
+				
+			if (b.getPijakan() != null) {
+				// cek apakah ada bidak yang belum memiliki pijakan sebelum bidak dapat bergeser
+				var adaBlmPijak:Boolean = kelasMacan.cekBidakBelumPijak(b.tipeBidak, bidaks);
+				
+				if (adaBlmPijak) // jika ada, maka gagal
+					return false;
+				else {
+					if (pilihKoneksiPijak(b, p))
+						return true;
+					else
+						return false;
+					// jika bidak macan, bisa melakukan loncatan
+				}
+			}
+			
+			return false;
+		}
+		
+		/*public function cekLangkah(b:Bidak, p:Pijakan, bid:Array = null, jmlHistoLangkah:int = -1):Boolean
 		{
 			var jumlahHistoLangkah:int = historiLangkah.length;
 			var jmlBidakBelumPijak:int = 0;
@@ -58,11 +92,12 @@
 			}
 			return false;
 		}
-		
-		public function setLangkah(b:Bidak, p:Pijakan):void {
-			if(cekLangkah(b, p))
+		*/
+		public function setLangkah(b:Bidak, p:Pijakan, langkahKe:int, bidaks:Array):void
+		{
+			if (cekLangkah(b, p, langkahKe, bidaks))
 				pilihBidakPijak(b, p);
-			
+		
 		}
 		
 		//function untuk memilih Bidak, mengeset pijakan dan set bidak
@@ -71,13 +106,14 @@
 			if (b.getPijakan() != null)
 				b.getPijakan().setBidak(null); //set pijakan sebelumnya menjadi null
 			b.setPijakan(p); // set pijakan untuk bidak
-			p.setBidak(b); // set bidak pada pijakan
+			if(p != null)
+				p.setBidak(b); // set bidak pada pijakan
 		}
 		
 		//function untuk menentukan, apakah pijakan yang dipilih terhubung dengan pijakan awal
 		public function pilihKoneksiPijak(b:Bidak, p:Pijakan):Boolean
 		{
-			return KelasMacan.pilihKoneksiPijak(b, p);
+			return kelasMacan.pilihKoneksiPijak(b, p);
 		}
 	}
 }

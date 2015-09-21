@@ -18,14 +18,15 @@
 		var gambar:String;
 		var circle:Sprite = new Sprite();
 		var terklik:Boolean;
-		var tipeBidak:String;
-		var status:Boolean; //false = mati, true = hidup
+		public var tipeBidak:String;
+		public var status:Boolean;
 		
-		private var pijakan:Pijakan;
-		private var pijakanSebelum:Pijakan;
+		public var pijakan:Pijakan;
+		public var pijakanSebelum:Pijakan;
 		var loadGambar:Loader = new Loader();
 		
-		private var nama:String;
+		public var nama:String;
+		public var indeks:int;
 		
 		public function Bidak(tipe:String = "macan", namaGambar:String = "01")
 		{
@@ -42,6 +43,8 @@
 			addEventListener(Event.ADDED_TO_STAGE, inisialisasi); //saat ditambahkan ke stage
 			
 			textnya.text = namaGambar;
+			if (tipe == "macan") indeks = Number(namaGambar) + 9;
+			else indeks = Number(namaGambar) - 1;
 		}
 		
 		private function inisialisasi(e:Event):void
@@ -78,7 +81,7 @@
 		public function klikSaya()
 		{
 			//trace(getNama());
-			if (!terklik)
+			if (!terklik && this.status)
 			{
 				var warna:uint;
 				if (tipeBidak == "macan")
@@ -112,11 +115,18 @@
 			addChildAt(circle,0);
 			
 			gDisable.visible = true;
-			this.status = false;
-			
+			setDisableTemp();
+		}
+		
+		public function setDisableTemp() {
+			status = false;			
 			setPijakan(null);
 		}
-	
+		
+		public function setEnable(pijak:Pijakan) {
+			status = true;
+			setPijakan(pijak);
+		}	
 	}
 
 }

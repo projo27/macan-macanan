@@ -1,11 +1,9 @@
 ﻿package
 {
-	
 	import fl.transitions.easing.Regular;
 	import fl.transitions.Tween;
 	import fl.transitions.TweenEvent;
 	import flash.display.DisplayObject;
-	import flash.display.DisplayObjectContainer;
 	import flash.display.Loader;
 	import flash.display.MovieClip;
 	import flash.display.SimpleButton;
@@ -17,60 +15,53 @@
 	import flash.net.URLRequest;
 	import flash.system.System;
 	import flash.text.TextField;
-	import flash.utils.getDefinitionByName;
-	import flash.utils.getQualifiedClassName;
 	import flash.utils.Timer;
 	
 	public class Main extends MovieClip
 	{
-		
-		public var pijakan:Array;
-		public var bidakAktif:Array;
-		public var bidakPasif:Array;
-		
-		public var historiLangkah:Array;
-		public var bidakTerklik:Bidak;
-		public var pijakanTerklik:Pijakan;
+		private var pijakans:Array;
+		private var bidaks:Array;
+		var bidaksAktif:Array;
+		var bidaksPasif:Array;
+		var bidakTerklik:Bidak;
+		var pijakanTerklik:Pijakan;
+		var bidakTerloncati:Array;
+		var arrSedangJalan:Array;
+		var bidakAI:Bidak;
+		var pijakanAI:Pijakan;
 		
 		var aturan:AturanMain;
-		var arrBidakTerloncati:Array = new Array();
+		var kelasMacan:KelasMacan;
+		var AI:KecerdasanBuatan;
+		var menang:Array;
 		
-		private var tween:Array;
-		protected var waktu:int;
-		protected var apaMenang:Boolean;
-		protected var bidakMenang:String;
-		
-		protected var timer:Timer;
-		protected var timerGC:Timer;
-		protected var timerClock:Timer;
-		
+		/* tween */
 		var twX:Tween;
 		var twY:Tween;
+		var tween:Array;
 		
-		var suaraMacan:Array;
-		var suaraAnak:Array;
-		var sound:Sound;
+		/* timer */
+		protected var timerAI:Timer;
+		protected var timerGC:Timer;
+		protected var timerClock:Timer;
+		protected var waktu:int;
+		static var dalam:int = 10;
 		
 		public function Main()
 		{
+			pijakans = new Array();
+			bidaks = new Array();
 			aturan = new AturanMain();
-			pijakan = KecerdasanBuatan.pijakan;
-			bidakAktif = KecerdasanBuatan.bidakAktif;
-			bidakPasif = KecerdasanBuatan.bidakPasif;
-			bidakTerklik = new Bidak;
-			pijakanTerklik = new Pijakan;
-			waktu = 0;
-			apaMenang = false;
-			bidakMenang = "";
-			// constructor code
+			kelasMacan = new KelasMacan();
+			AI = new KecerdasanBuatan();
+			menang = new Array();
+			
 			addEventListener(Event.ADDED_TO_STAGE, tambahKeStage);
 			addEventListener(MouseEvent.CLICK, klikObjek);
 			
-			btnHistori.addEventListener(MouseEvent.CLICK, klikHistori);
-			
-			timer = new Timer(3000, 1); // timer menjalankan AI awal
-			timer.addEventListener(TimerEvent.TIMER_COMPLETE, awalJalankanAI);
-			timer.start();
+			timerAI = new Timer(3000, 1); // timer menjalankan AI awal
+			timerAI.addEventListener(TimerEvent.TIMER_COMPLETE, awalJalankanAI);
+			timerAI.start();
 			
 			timerGC = new Timer(10000, 0); // timer Garbage Collector
 			timerGC.addEventListener(TimerEvent.TIMER_COMPLETE, releaseGC);
@@ -78,48 +69,32 @@
 			
 			timerClock = new Timer(1000, 1); //timer Waktu
 			timerClock.addEventListener(TimerEvent.TIMER_COMPLETE, tambahDetik);
-			timerClock.start();
+			timerClock.start();			
+		}		
+		
+		//saat tambah ke stage
+		protected function tambahKeStage(e:Event):void
+		{
+			//trace(KecerdasanBuatan.levelPermainan);
+			removeEventListener(Event.ADDED_TO_STAGE, tambahKeStage);
+			//KecerdasanBuatan.resetKecerdasanBuatan();
+			buatTempatPijak();
+			buatHubunganPijak();
+			buatJalur();
+			buatBidak();
+			resetBeberapaMovie();
 			
+			//kelasMacan.printPosisiBidak(bidaks);
 		}
 		
-		private function buatSound():void 
-		{
-			suaraMacan = new Array();
-			suaraAnak = new Array();
-			for (var i = 0; i < 3; i++) {
-				sound = new Sound();
-				sound.load(new URLRequest("sound/macan" + (i + 1) + ".mp3"));
-				suaraMacan.push(sound);
-				//sound.play();
-			}
-			
-			for (var a = 0; a < 4; a++) {
-				sound = new Sound();
-				sound.load(new URLRequest("sound/anak" + (a + 1) + ".mp3"));
-				suaraAnak.push(sound);
-				//sound.play();
-			}
-		}
 		
-		protected function tambahDetik(e:TimerEvent):void
+		protected function klikObjek(e:MouseEvent = null):void
 		{
-			waktu++;
-			(MovieClip(kotakWaktu).getChildByName("tWaktu") as TextField).text = KelasMacan.detikKeWaktu(waktu);
-			KelasMacan.waktunya = KelasMacan.detikKeWaktu(waktu);
-			timerClock.start();
-			//adaPemenang();
-		}
-		
-		protected function releaseGC(e:TimerEvent):void
-		{
-			System.gc(); // release garbage
-			timerGC.start();
-		}
-		
-		protected function klikObjek(e:MouseEvent):void
-		{
+			menang = kelasMacan.cekMenang(kelasMacan.getBidakHidup(bidaks), pijakans);
+			if (menang[0])
+				tampilkanPemenang(menang[1]);
+				
 			resetKlikPijakBidak();
-			adaPemenang();
 			try
 			{
 				if (e.target.parent.parent as Bidak || e.target as Bidak)
@@ -130,10 +105,6 @@
 						{
 							Bidak(e.target.parent.parent).klikSaya();
 							bidakTerklik = Bidak(e.target.parent.parent);
-							if (bidakTerklik.tipeBidak == "macan" && KelasMacan.SOUND)
-								suaraMacan[KelasMacan.randomAntara(0, suaraMacan.length)].play();
-							else if (bidakTerklik.tipeBidak == "anak" && KelasMacan.SOUND)
-								suaraAnak[KelasMacan.randomAntara(0, suaraAnak.length)].play();
 						}
 					}
 					catch (err:Error)
@@ -142,10 +113,6 @@
 						{
 							Bidak(e.target).klikSaya();
 							bidakTerklik = Bidak(e.target);
-							if (bidakTerklik.tipeBidak == "macan" && KelasMacan.SOUND)
-								suaraMacan[KelasMacan.randomAntara(0, suaraMacan.length)].play();
-							else if (bidakTerklik.tipeBidak == "anak" && KelasMacan.SOUND)
-								suaraAnak[KelasMacan.randomAntara(0, suaraAnak.length)].play();
 						}
 					}
 				}
@@ -162,180 +129,67 @@
 						pijakanTerklik = Pijakan(e.target.parent);
 					}
 					
+					// jika sebelumnya pernah memilih bidak
 					if (bidakTerklik != null)
 					{
-						var loncat:Boolean = false; // set loncat ke false
-						if (bidakTerklik.getPijakan() != null)
+						var loncat:Boolean = false;						
+						if (bidakTerklik.getPijakan() != null && bidakTerklik.tipeBidak == "macan")
 						{
-							arrBidakTerloncati = KelasMacan.bidakTerloncatiMacan(bidakTerklik.getPijakan(), pijakanTerklik);
-							if (arrBidakTerloncati.length == 2)
+							bidakTerloncati = kelasMacan.bidakTerloncatiMacan(bidakTerklik.getPijakan(), pijakanTerklik);
+							if (bidakTerloncati.length == 2)
 								loncat = true;
 						}
 						
-						if (aturan.cekLangkah(bidakTerklik, pijakanTerklik))
+						//cek langkah (bidakterpilih, pijakanterpilih, langkahke)
+						var bisaMelangkah:Boolean = aturan.cekLangkah(bidakTerklik, pijakanTerklik, KelasMacan.langkahKe, bidaks);
+						if (bisaMelangkah)
 						{
-							aturan.setLangkah(bidakTerklik, pijakanTerklik);
+							bidakTerloncati = kelasMacan.bidakTerloncatiMacan(bidakTerklik.getPijakan(), pijakanTerklik);
+							
+							aturan.setLangkah(bidakTerklik, pijakanTerklik, KelasMacan.langkahKe, bidaks); // update bidak dan pijakan
+							kelasMacan.setHistoriLangkah(bidakTerklik, pijakanTerklik); // update historis
+							
+							//lakukan animasi							
+							if (bidakTerklik.tipeBidak == "anak")
+								geserBidakAnak();
 							bidakTerklik.klikSaya();
 							twX = new Tween(bidakTerklik, "x", Regular.easeInOut, bidakTerklik.x, pijakanTerklik.x, 10);
 							twY = new Tween(bidakTerklik, "y", Regular.easeInOut, bidakTerklik.y, pijakanTerklik.y, 10);
-							if (bidakTerklik.tipeBidak == "anak")
-								geserBidakAnak();
 							
-							if (!loncat)
-							{
-								twY.addEventListener(TweenEvent.MOTION_FINISH, mulaiJalankanAI); // jika tidak loncat langsung jalankan AI
-								MovieClip(kotakWaktu).gotoAndPlay(1);
-							}
-							KecerdasanBuatan.setHistoriLangkah(bidakTerklik, pijakanTerklik); //simpan langkah
-							TextField(kotakHistoris.textHistoris).text = (KecerdasanBuatan.langkahKe+" \t: " + bidakTerklik.getNama() + ", " + pijakanTerklik.getNama()+"\n") + kotakHistoris.textHistoris.text;
+							twY.addEventListener(TweenEvent.MOTION_FINISH, mulaiJalankanAI); // jika tidak loncat langsung jalankan AI
 						}
 						
-						if (loncat) // jika loncat, pindahkan bidak terlebih dahulu
-						{
+						if (loncat) { // jika masuk loncatan
 							twX.addEventListener(TweenEvent.MOTION_FINISH, pindahBidak);
 							MovieClip(kotakWaktu).gotoAndPlay(1); // memberi efek ganti warna pada jam
 						}
-						bidakTerklik = null;
-					
-					//KelasMacan.representasiPapan(this.pijakan);		
 					}
 				}
 				else
 				{
-					//trace(e.target);
+					bidakTerklik = null;
+					pijakanTerklik = null;
 				}
+				
 			}
 			catch (er:Error)
 			{
 			}
 		}
 		
-		private function adaPemenang():void
-		{
-			if (KecerdasanBuatan.cekMenang()[0])
-			{
-				apaMenang = true;
-				bidakMenang = KecerdasanBuatan.cekMenang()[1];
-				timer.stop();
-				timerClock.stop();
-				timerGC.stop();
-				MovieClip(modal).visible = true;
-				MovieClip(theWin).visible = true;
-				
-				theWin.textPlayer.text = KecerdasanBuatan.arrayMenang[1].toUpperCase();
-				stage.removeEventListener(MouseEvent.CLICK, klikObjek);
-				return;
-			}
-		}
-		
-		private function pindahBidak(e:TweenEvent):void
-		{
-			for (var bt = 0; bt < arrBidakTerloncati.length; bt++)
-			{
-				geserBidakAnakPasif(arrBidakTerloncati[bt]);
-				arrBidakTerloncati[bt].setDisable();
-				KelasMacan.hapusBidakAktif(arrBidakTerloncati[bt]);
-				arrBidakTerloncati[bt].getPijakanSebelum().setBidak(null);
-				KelasMacan.sleep(100);
-			}
-			
-			timer = new Timer(800, 1);
-			timer.addEventListener(TimerEvent.TIMER_COMPLETE, mulaiJalankanAI);
-			timer.start();
-		}
-		
-		protected function geserBidakAnak():void
-		{
-			tween = new Array();
-			var aArr:Array = new Array();
-			var bidak:Array = bidakAktif.concat(bidakPasif);
-			
-			for (var a = 0; a < bidak.length; a++)
-			{
-				if (bidak[a].tipeBidak == "anak" && bidak[a].getPijakan() == null)
-					aArr.push(bidak[a]);
-			}
-			
-			for (var r = 0; r < aArr.length; r++)
-			{
-				var tw:Tween = new Tween(aArr[r], "x", Regular.easeInOut, aArr[r].x, 220 + (r * 45), 10);
-				tween.push(tw);
-			}
-		}
-		
-		protected function geserBidakAnakPasif(b:Bidak):void
-		{
-			var bidakTerakhir:Bidak = null;
-			var bidak:Array = bidakAktif.concat(bidakPasif);
-			
-			var korX:int = 220;
-			var korY:int = 555;
-			for (var a = 0; a < bidak.length; a++)
-			{
-				if (bidak[a].tipeBidak == "anak" && bidak[a].getPijakan() == null)
-					bidakTerakhir = bidak[a];
-			}
-			//trace(bidakTerakhir.getNama()+" "+bidakTerakhir.x+" "+bidakTerakhir.y);
-			if (bidakTerakhir != null)
-			{
-				trace(bidakTerakhir.getNama() + " " + bidakTerakhir.x + " " + bidakTerakhir.y);
-				korX = bidakTerakhir.x + 45;
-			}
-			
-			var twX:Tween = new Tween(b, "x", Regular.easeInOut, b.x, korX, 20);
-			var twY:Tween = new Tween(b, "y", Regular.easeInOut, b.y, korY, 20);
-			
-			b.x = korX;
-			b.y = korY;
-		}
-		
-		// reset klik Pijakan dan Bidak
-		private function resetKlikPijakBidak():void
-		{
-			for (var p = 0; p < pijakan.length; p++)
-			{
-				pijakan[p].anjakKe("kosong");
-			}
-			for (var b1 = 0; b1 < bidakAktif.length; b1++)
-			{
-				bidakAktif[b1].tidakKlikSaya();
-			}
-		}
-		
-		//saat tambah ke stage
-		protected function tambahKeStage(e:Event):void
-		{
-			trace(KecerdasanBuatan.levelPermainan);
-			removeEventListener(Event.ADDED_TO_STAGE, tambahKeStage);
-			//KecerdasanBuatan.resetKecerdasanBuatan();
-			buatTempatPijak();
-			buatHubunganPijak();
-			buatJalur();
-			buatBidak();
-			resetBeberapaMovie();
-			
-			salinPijakBidakKeTemporari();
-			buatSound();
-		}
-		
-		private function salinPijakBidakKeTemporari():void
-		{
-			KecerdasanBuatan.tempPijakan = pijakan;
-			KecerdasanBuatan.tempBidakPasif = bidakPasif;
-		}
-		
+		/*********** AI *********/		
 		protected function awalJalankanAI(e:TimerEvent):void
 		{
-			if (KecerdasanBuatan.getPlayerMacan() == "AI")
+			if (KelasMacan.thePlayer[0] == "AI")
 				jalankanAI();
 		}
 		
 		protected function mulaiJalankanAI(e:Event):void
 		{
-			// jika langkah langkah selanjutnya ganjil, dan player MACAN = "AI"
-			if (KecerdasanBuatan.historiLangkah.length % 2 == 0 && KecerdasanBuatan.getPlayerMacan() == "AI")
+			// jika langkah selanjutnya ganjil, dan player MACAN = "AI"
+			if (KelasMacan.langkahKe % 2 == 1 && KelasMacan.thePlayer[0] == "AI")
 				jalankanAI();
-			else if (KecerdasanBuatan.historiLangkah.length % 2 == 1 && KecerdasanBuatan.getPlayerAnak() == "AI")
+			else if (KelasMacan.langkahKe % 2 == 0 && KelasMacan.thePlayer[1] == "AI")
 				jalankanAI();
 		
 			//selain di atas, maka bidak macan dan manusia dijalankan oleh PLAYER
@@ -343,62 +197,52 @@
 		
 		protected function jalankanAI(e:TweenEvent = null):void
 		{
-			if (KecerdasanBuatan.cekMenang()[0])
+			if (menang[0]) // jika sudah ada pemenang, stop
 			{
-				klikObjek(null);
+				klikObjek();
 				return;
-			} // jika sudah ada pemenang, stop
+			}
 			
 			try
 			{
-				KecerdasanBuatan.mariMainkan();
-				var arr:Array = KecerdasanBuatan.sedangJalan;
+				AI.mariMainkan(kelasMacan.getBidakHidup(bidaks), pijakans, KelasMacan.langkahKe);
+				arrSedangJalan = AI.sedangJalan;
 				
-				var bidak:Bidak = arr[0];
-				var pijakan:Pijakan = arr[1];
+				bidakAI = arrSedangJalan[0];
+				pijakanAI = arrSedangJalan[1];
 				
-				if (bidak != null && pijakan != null)
+				if (bidakAI != null && pijakanAI != null)
 				{
-					bidak.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
+					bidakAI.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
 					
-					if (!bidak.terklik)
+					if (!bidakAI.terklik)
 						jalankanAI(null);
 					else
-						pijakan.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
+						pijakanAI.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
 				}
 				else
 				{
 					try
 					{
-						trace(bidak.getNama() + " " + pijakan.getNama());
+						trace(bidakAI.getNama() + " " + pijakanAI.getNama());
 					}
 					catch (er:Error)
 					{
-						trace(bidak.getNama() + " kosong ");
+						trace(bidakAI.getNama() + " kosong ");
 					}
-					timer = new Timer(200, 1);
-					timer.addEventListener(TimerEvent.TIMER_COMPLETE, mulaiJalankanAI);
-					timer.start();
+					timerAI = new Timer(200, 1);
+					timerAI.addEventListener(TimerEvent.TIMER_COMPLETE, mulaiJalankanAI);
+					timerAI.start();
 				}
 			}
 			catch (er:Error)
 			{
-				//trace("gundul");
 				trace(er.message);
-					//timer = new Timer(200, 1);
-					//timer.addEventListener(TimerEvent.TIMER_COMPLETE, mulaiJalankanAI);
-					//timer.start();
 			}
-		}
+		}		
+		/***** END OF AI ************/
 		
-		protected function resetBeberapaMovie():void
-		{
-			MovieClip(kotakChat).visible = false;
-			MovieClip(kotakHistoris).visible = false;
-			MovieClip(modal).visible = false;
-			MovieClip(theWin).visible = false;
-		}
-		
+		/********** INISIALISASI PAPAN DAN BIDAK *********/		
 		protected function buatTempatPijak():void
 		{
 			// di sini kita akan membuat Kumpulan Pijakan tengah (Center) 5x5
@@ -425,7 +269,7 @@
 				p.y = letakY;
 				p.setText("C" + (i + 1));
 				
-				pijakan.push(p);
+				pijakans.push(p);
 				parentPijakan.addChild(p);
 			}
 			
@@ -448,7 +292,7 @@
 				pA.y = letakY;
 				pA.setText("A" + (a + 1));
 				
-				pijakan.push(pA);
+				pijakans.push(pA);
 				parentPijakan.addChild(pA);
 			}
 			
@@ -471,7 +315,7 @@
 				pB.y = letakY;
 				pB.setText("B" + (b + 1));
 				
-				pijakan.push(pB);
+				pijakans.push(pB);
 				parentPijakan.addChild(pB);
 			}
 		}
@@ -484,7 +328,7 @@
 				var bidA:Bidak = new Bidak("anak", KelasMacan.lpad(a, 2));
 				bidA.x = 175 + (a * 45);
 				bidA.y = 555;
-				bidakAktif.push(bidA);
+				bidaks.push(bidA);
 				parentBidak.addChild(bidA);
 			}
 			
@@ -494,7 +338,7 @@
 				var bid:Bidak = new Bidak("macan", KelasMacan.lpad(b, 2));
 				bid.x = 65 + (b * 45);
 				bid.y = 555;
-				bidakAktif.push(bid);
+				bidaks.push(bid);
 				parentBidak.addChild(bid);
 			}
 		}
@@ -504,16 +348,16 @@
 			var pX = 0;
 			var pY = 0;
 			// cari tiap pijakan dan hubungkan
-			for (var b = 0; b < pijakan.length; b++)
+			for (var b = 0; b < pijakans.length; b++)
 			{
-				pX = Pijakan(pijakan[b]).x;
-				pY = Pijakan(pijakan[b]).y;
+				pX = Pijakan(pijakans[b]).x;
+				pY = Pijakan(pijakans[b]).y;
 				//cari tiap pijakan lain
-				for (var bx = 0; bx < pijakan.length; bx++)
+				for (var bx = 0; bx < pijakans.length; bx++)
 				{
 					// hitung selisih get by name
-					var pijakanAwal:Pijakan = Pijakan(pijakan[b]);
-					var pijakanAkhir:Pijakan = Pijakan(pijakan[bx]);
+					var pijakanAwal:Pijakan = Pijakan(pijakans[b]);
+					var pijakanAkhir:Pijakan = Pijakan(pijakans[bx]);
 					var noPijakAwal:Number = Number(pijakanAwal.getNama().substring(1));
 					var noPijakAkhir:Number = Number(pijakanAkhir.getNama().substring(1));
 					var selisih:Number = Math.abs(noPijakAwal - noPijakAkhir);
@@ -555,42 +399,118 @@
 			}
 			
 			//buat koneksi loncat
-			for (var pj = 0; pj < pijakan.length; pj++)
+			for (var pj = 0; pj < pijakans.length; pj++)
 			{
-				pijakan[pj].tambahKoneksiLoncat();
+				pijakans[pj].tambahKoneksiLoncat();
 			}
 		
 		}
 		
 		protected function buatJalur()
 		{
-			for (var i = 0; i < pijakan.length; i++)
+			for (var i = 0; i < pijakans.length; i++)
 			{
-				if (Pijakan(pijakan[i]).getJumlahKoneksi() > 0)
+				if (Pijakan(pijakans[i]).getJumlahKoneksi() > 0)
 				{
-					for (var j = 0; j < Pijakan(pijakan[i]).getJumlahKoneksi(); j++)
+					for (var j = 0; j < Pijakan(pijakans[i]).getJumlahKoneksi(); j++)
 					{
-						var pKon:Pijakan = Pijakan(pijakan[i].getKoneksi()[j]);
+						var pKon:Pijakan = Pijakan(pijakans[i].getKoneksi()[j]);
 						graphics.lineStyle(5, 0xAAAAAA);
-						graphics.moveTo(pijakan[i].x, pijakan[i].y);
+						graphics.moveTo(pijakans[i].x, pijakans[i].y);
 						graphics.lineTo(pKon.x, pKon.y);
 					}
 				}
 			}
 		}
 		
-		/*protected function cariPijakanByNama(s:String):Pijakan
-		   {
-		   for (var i = 0; i < pijakan.length; i++)
-		   {
-		   if (Pijakan(pijakan[i]).getNama() == s)
-		   {
-		   return Pijakan(pijakan[i]);
-		   break;
-		   }
-		   }
-		   return null;
-		 }*/
+		protected function geserBidakAnak():void
+		{
+			tween = new Array();
+			var aArr:Array = new Array();
+			var bidak:Array = bidaks;
+			
+			for (var a = 0; a < bidak.length; a++)
+			{
+				if (bidak[a].tipeBidak == "anak" && bidak[a].getPijakan() == null)
+					aArr.push(bidak[a]);
+			}
+			
+			for (var r = 0; r < aArr.length; r++)
+			{
+				var tw:Tween = new Tween(aArr[r], "x", Regular.easeInOut, aArr[r].x, 220 + (r * 45), 10);
+				tween.push(tw);
+			}
+		}		
+		
+		protected function resetBeberapaMovie():void
+		{
+			MovieClip(kotakChat).visible = false;
+			MovieClip(kotakHistoris).visible = false;
+			MovieClip(modal).visible = false;
+			MovieClip(theWin).visible = false;
+		}
+		
+		private function resetKlikPijakBidak():void
+		{
+			for (var p = 0; p < pijakans.length; p++)
+			{
+				pijakans[p].anjakKe("kosong");
+			}
+			for (var b1 = 0; b1 < bidaks.length; b1++)
+			{
+				bidaks[b1].tidakKlikSaya();
+			}
+		}
+		
+		/********** HANYA ANIMASI *********/
+		private function pindahBidak(e:TweenEvent):void 
+		{
+			for (var bt = 0; bt < bidakTerloncati.length; bt++)
+			{
+				
+				geserBidakAnakPasif(bidakTerloncati[bt]);
+				kelasMacan.hapusBidakAktif(bidakTerloncati[bt], bidaks);
+				KelasMacan.sleep(100);
+			}			
+		}
+		
+		protected function geserBidakAnakPasif(b:Bidak):void
+		{
+			var bidakTerakhir:Bidak = null;
+			var bidak:Array = bidaks;
+			
+			var korX:int = 220;
+			var korY:int = 555;
+			for (var a = 0; a < bidak.length; a++)
+			{
+				if (bidak[a].tipeBidak == "anak" && bidak[a].getPijakan() == null)
+					bidakTerakhir = bidak[a];
+			}
+			
+			if (bidakTerakhir != null)
+			{
+				korX = bidakTerakhir.x + 45;
+			}
+			
+			var twX:Tween = new Tween(b, "x", Regular.easeInOut, b.x, korX, 20);
+			var twY:Tween = new Tween(b, "y", Regular.easeInOut, b.y, korY, 20);
+			
+			b.x = korX;
+			b.y = korY;
+		}
+		
+		private function tampilkanPemenang(pemenang:String):void 
+		{
+			timerAI.stop();
+			timerClock.stop();
+			timerGC.stop();
+			MovieClip(modal).visible = true;
+			MovieClip(theWin).visible = true;
+			
+			theWin.textPlayer.text = pemenang.toUpperCase();
+			stage.removeEventListener(MouseEvent.CLICK, klikObjek);
+			return;
+		}
 		
 		private function klikHistori(e:MouseEvent):void
 		{
@@ -599,7 +519,24 @@
 			else
 				kotakHistoris.visible = false;
 		}
-	
+		
+		/********** TIMER *********/
+		protected function tambahDetik(e:TimerEvent):void
+		{
+			waktu++;
+			(MovieClip(kotakWaktu).getChildByName("tWaktu") as TextField).text = KelasMacan.detikKeWaktu(waktu);
+			KelasMacan.waktunya = KelasMacan.detikKeWaktu(waktu);
+			timerClock.start();
+			//adaPemenang();
+		}
+		
+		protected function releaseGC(e:TimerEvent):void
+		{
+			System.gc(); // release garbage
+			timerGC.start();
+		}
+		
 	}
 
 }
+
