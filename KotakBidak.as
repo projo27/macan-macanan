@@ -113,6 +113,10 @@
 			}
 
 		}
+		
+		public function setTextAI(te:String) {
+			textAI.text = te;
+		}
 
 	}
 

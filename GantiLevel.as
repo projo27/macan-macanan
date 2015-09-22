@@ -31,6 +31,8 @@
 			
 			addEventListener(Event.ADDED_TO_STAGE, tambahKeStage);
 			KelasMacan.setPlayer("AI", "AI");
+			kpMacan.setTextAI(KelasMacan.thePlayer[0]);
+			kpManusia.setTextAI(KelasMacan.thePlayer[1]);
 		}
 		
 		private function tambahKeStage(e:Event):void
@@ -88,6 +90,7 @@
 				tipeB = "AI";
 			
 			KelasMacan.setPlayer(KelasMacan.thePlayer[0], tipeB);
+			kpManusia.setTextAI(tipeB);
 			
 			if (KelasMacan.thePlayer[0] == "PLAYER" || KelasMacan.thePlayer[1] == "PLAYER")
 				enableTombolStart(true);		
@@ -106,6 +109,7 @@
 				tipeB = "AI";
 			
 			KelasMacan.setPlayer(tipeB, KelasMacan.thePlayer[1]);
+			kpMacan.setTextAI(tipeB);
 			
 			if(KelasMacan.thePlayer[0] == "PLAYER" || KelasMacan.thePlayer[1] == "PLAYER")
 				enableTombolStart(true);

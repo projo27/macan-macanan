@@ -204,13 +204,13 @@
 			// jika langkah selanjutnya ganjil, dan player MACAN = "AI"
 			if (KelasMacan.langkahKe % 2 == 1 && KelasMacan.thePlayer[0] == "AI")
 			{
-				timerAI = new Timer((KelasMacan.randomAntara(1,10)*100), 1);
+				timerAI = new Timer((KelasMacan.randomAntara(5,20)*100), 1);
 				timerAI.addEventListener(TimerEvent.TIMER_COMPLETE, jalankanAI);
 				timerAI.start();
 			}
 			else if (KelasMacan.langkahKe % 2 == 0 && KelasMacan.thePlayer[1] == "AI")
 			{
-				timerAI = new Timer((KelasMacan.randomAntara(1,10)*100), 1);
+				timerAI = new Timer((KelasMacan.randomAntara(5,20)*100), 1);
 				timerAI.addEventListener(TimerEvent.TIMER_COMPLETE, jalankanAI);
 				timerAI.start();
 			}

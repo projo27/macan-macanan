@@ -78,7 +78,7 @@
 			var jml:int;
 			var lvl:int = KelasMacan.levelPermainanMacan - 1;
 			
-			if(KelasMacan.historiLangkah.length > 8){
+			if(KelasMacan.historiLangkah.length > 10){
 				if (KelasMacan.historiLangkah[langkahSelanjutnya - 2][3] == KelasMacan.historiLangkah[langkahSelanjutnya - 6][3])
 					lvl = 0;
 			}
@@ -140,9 +140,9 @@
 				if (menang[1] == "macan")
 					skor = Evaluasi(pijakans, menang[1], true);
 				else if (menang[1] == "anak")
-					skor = Evaluasi(pijakans, menang[1], true);
+					skor = Evaluasi(pijakans, menang[1], true );
 				else
-					skor = Evaluasi(pijakans, menang[1], false, jmlBidTerloncati);
+					skor = Evaluasi(pijakans, menang[1], false, jmlBidTerloncati, bidaks);
 				
 				return new Array(skor, null, null);
 			}
@@ -315,7 +315,7 @@
 			return retArr;
 		}
 		
-		protected function Evaluasi(pijakans:Array, tipeBidak:String, menang:Boolean = false, jmlBidTerloncati:int = 0):Number
+		protected function Evaluasi(pijakans:Array, tipeBidak:String, menang:Boolean = false, jmlBidTerloncati:int = 0, bidaks:Array = null):Number
 		{
 			var pijaks:Array = pijakans;
 			var bidMacans:Array = kelasMacan.representasiPapan(pijaks)[0];
@@ -323,7 +323,8 @@
 			var nilaiMacan:Number;
 			var nilaiAnak:Number;
 			var nilaiTotal:Number;
-			var nilaiBidTerloncati:Number = jmlBidTerloncati;
+			var jmlBidakAnak:int = (bidaks == null) ? KelasMacan.JUMLAH_BIDAK_ANAK : kelasMacan.bidakHidupByTipe("anak", bidaks).length / KelasMacan.JUMLAH_BIDAK_ANAK;
+			var jmlBidakMacan:int = KelasMacan.JUMLAH_BIDAK_MACAN;
 			
 			if (menang)
 			{
@@ -336,7 +337,7 @@
 			}
 			else
 			{
-				nilaiMacan = KelasMacan.BOBOT_MACAN * (bidMacans[2] + (KelasMacan.BOBOT_LONCATAN * bidMacans[3])) + KelasMacan.BOBOT_LONCATAN ^ nilaiBidTerloncati;
+				nilaiMacan = KelasMacan.BOBOT_MACAN * (bidMacans[2] + (KelasMacan.BOBOT_LONCATAN * bidMacans[3])) + KelasMacan.BOBOT_LONCATAN ^ jmlBidTerloncati;
 				nilaiAnak = KelasMacan.BOBOT_ANAK * (bidAnaks[2] + (KelasMacan.BOBOT_LONCATAN * bidAnaks[3]));
 				nilaiTotal = nilaiMacan - nilaiAnak;
 			}
